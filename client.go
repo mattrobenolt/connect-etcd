@@ -78,31 +78,19 @@ func New(cfg *Config) *Client {
 	return &Client{
 		httpClient: defaultHTTPClient(cfg),
 		endpoint:   protocol + "://" + cfg.Endpoint,
-		opts:       defaultClientOptions(),
+		opts:       defaultClientOpts,
 	}
 }
 
-type simpleClient struct {
-	http.RoundTripper
-}
+type simpleClient http2.Transport
 
 func (c *simpleClient) Do(req *http.Request) (*http.Response, error) {
-	return c.RoundTripper.RoundTrip(req)
+	return (*http2.Transport)(c).RoundTrip(req)
 }
 
-var (
-	defaultClientOpts     []connect.ClientOption
-	defaultClientOptsOnce sync.Once
-)
-
-func defaultClientOptions() []connect.ClientOption {
-	defaultClientOptsOnce.Do(func() {
-		defaultClientOpts = []connect.ClientOption{
-			connect.WithGRPC(),
-			connect.WithCodec(codec.DefaultCodec),
-		}
-	})
-	return defaultClientOpts
+var defaultClientOpts = []connect.ClientOption{
+	connect.WithGRPC(),
+	connect.WithCodec(codec.DefaultCodec),
 }
 
 func defaultHTTPClient(cfg *Config) connect.HTTPClient {
@@ -118,7 +106,7 @@ func defaultHTTPClient(cfg *Config) connect.HTTPClient {
 			return d.DialContext(ctx, network, addr)
 		}
 	}
-	return &simpleClient{transport}
+	return (*simpleClient)(transport)
 }
 
 var (

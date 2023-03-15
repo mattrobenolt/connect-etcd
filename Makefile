@@ -31,7 +31,7 @@ $(BIN)/protoc-gen-connect-go: Makefile | $(BIN)
 	$(TOOL_INSTALL) github.com/bufbuild/connect-go/cmd/protoc-gen-connect-go
 
 $(BIN)/gofumpt: Makefile | $(BIN)
-	$(TOOL_INSTALL) mvdan.cc/gofumpt@v0.3.1
+	$(TOOL_INSTALL) mvdan.cc/gofumpt@v0.4.0
 
 $(BIN)/staticcheck: Makefile | $(BIN)
 	$(TOOL_INSTALL) honnef.co/go/tools/cmd/staticcheck@v0.3.3
@@ -54,13 +54,10 @@ tools: $(PROTO_TOOLS) $(BIN)/gofumpt $(BIN)/staticcheck $(BIN)/enumcheck $(BIN)/
 proto: $(PROTO_TOOLS) | $(PROTO_OUT)
 	$(BIN)/buf generate
 
-fmt: fmt-go fmt-proto
+fmt: fmt-go
 
 fmt-go: $(BIN)/gofumpt
 	$(BIN)/gofumpt -l -w .
-
-fmt-proto: $(BIN)/buf
-	$(BIN)/buf format -w
 
 fmt-yaml: $(BIN)/yq
 ifeq (, $(shell command -v fd 2>/dev/null))
@@ -97,6 +94,6 @@ update:
 
 .PHONY: proto tools update \
 		clean clean-proto clean-bin \
-		fmt fmt-go fmt-proto fmt-yaml \
+		fmt fmt-go fmt-yaml \
 		lint lint-vet lint-staticcheck lint-enumcheck lint-govulncheck lint-proto \
 		tests
