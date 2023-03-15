@@ -7,6 +7,7 @@ import (
 	"github.com/bufbuild/connect-go"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
+	client "go.withmatt.com/connect-etcd"
 	etcd "go.withmatt.com/connect-etcd/types/etcdserverpb"
 )
 
@@ -19,7 +20,7 @@ func BenchmarkSimple(b *testing.B) {
 		Endpoints: []string{"127.0.0.1:2379"},
 	})
 
-	newClient := New(&Config{
+	newClient := client.New(&client.Config{
 		Endpoint: "127.0.0.1:2379",
 	}).KV()
 

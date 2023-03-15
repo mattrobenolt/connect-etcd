@@ -11,7 +11,6 @@ import (
 	"sync"
 
 	"github.com/bufbuild/connect-go"
-	compress "github.com/klauspost/connect-compress"
 	"golang.org/x/net/http2"
 
 	"go.withmatt.com/connect-etcd/internal/codec"
@@ -100,7 +99,6 @@ func defaultClientOptions() []connect.ClientOption {
 	defaultClientOptsOnce.Do(func() {
 		defaultClientOpts = []connect.ClientOption{
 			connect.WithGRPC(),
-			compress.WithAll(compress.LevelFastest),
 			connect.WithCodec(codec.DefaultCodec),
 		}
 	})

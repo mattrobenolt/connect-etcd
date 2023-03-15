@@ -13,7 +13,7 @@ import (
 	"time"
 
 	"github.com/bufbuild/connect-go"
-	"go.withmatt.com/connect-etcd/client"
+	client "go.withmatt.com/connect-etcd"
 	etcd "go.withmatt.com/connect-etcd/types/etcdserverpb"
 )
 
@@ -128,6 +128,8 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+
+	fmt.Println(r1.Header())
 	fmt.Println(r1.Msg.PrevKv)
 
 	// read a single key, may return 0 or more `Kvs` since this is a range request.
