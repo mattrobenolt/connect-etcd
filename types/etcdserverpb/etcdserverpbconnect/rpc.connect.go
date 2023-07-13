@@ -35,6 +35,100 @@ const (
 	AuthName = "etcdserverpb.Auth"
 )
 
+// These constants are the fully-qualified names of the RPCs defined in this package. They're
+// exposed at runtime as Spec.Procedure and as the final two segments of the HTTP route.
+//
+// Note that these are different from the fully-qualified method names used by
+// google.golang.org/protobuf/reflect/protoreflect. To convert from these constants to
+// reflection-formatted method names, remove the leading slash and convert the remaining slash to a
+// period.
+const (
+	// KVRangeProcedure is the fully-qualified name of the KV's Range RPC.
+	KVRangeProcedure = "/etcdserverpb.KV/Range"
+	// KVPutProcedure is the fully-qualified name of the KV's Put RPC.
+	KVPutProcedure = "/etcdserverpb.KV/Put"
+	// KVDeleteRangeProcedure is the fully-qualified name of the KV's DeleteRange RPC.
+	KVDeleteRangeProcedure = "/etcdserverpb.KV/DeleteRange"
+	// KVTxnProcedure is the fully-qualified name of the KV's Txn RPC.
+	KVTxnProcedure = "/etcdserverpb.KV/Txn"
+	// KVCompactProcedure is the fully-qualified name of the KV's Compact RPC.
+	KVCompactProcedure = "/etcdserverpb.KV/Compact"
+	// WatchWatchProcedure is the fully-qualified name of the Watch's Watch RPC.
+	WatchWatchProcedure = "/etcdserverpb.Watch/Watch"
+	// LeaseLeaseGrantProcedure is the fully-qualified name of the Lease's LeaseGrant RPC.
+	LeaseLeaseGrantProcedure = "/etcdserverpb.Lease/LeaseGrant"
+	// LeaseLeaseRevokeProcedure is the fully-qualified name of the Lease's LeaseRevoke RPC.
+	LeaseLeaseRevokeProcedure = "/etcdserverpb.Lease/LeaseRevoke"
+	// LeaseLeaseKeepAliveProcedure is the fully-qualified name of the Lease's LeaseKeepAlive RPC.
+	LeaseLeaseKeepAliveProcedure = "/etcdserverpb.Lease/LeaseKeepAlive"
+	// LeaseLeaseTimeToLiveProcedure is the fully-qualified name of the Lease's LeaseTimeToLive RPC.
+	LeaseLeaseTimeToLiveProcedure = "/etcdserverpb.Lease/LeaseTimeToLive"
+	// LeaseLeaseLeasesProcedure is the fully-qualified name of the Lease's LeaseLeases RPC.
+	LeaseLeaseLeasesProcedure = "/etcdserverpb.Lease/LeaseLeases"
+	// ClusterMemberAddProcedure is the fully-qualified name of the Cluster's MemberAdd RPC.
+	ClusterMemberAddProcedure = "/etcdserverpb.Cluster/MemberAdd"
+	// ClusterMemberRemoveProcedure is the fully-qualified name of the Cluster's MemberRemove RPC.
+	ClusterMemberRemoveProcedure = "/etcdserverpb.Cluster/MemberRemove"
+	// ClusterMemberUpdateProcedure is the fully-qualified name of the Cluster's MemberUpdate RPC.
+	ClusterMemberUpdateProcedure = "/etcdserverpb.Cluster/MemberUpdate"
+	// ClusterMemberListProcedure is the fully-qualified name of the Cluster's MemberList RPC.
+	ClusterMemberListProcedure = "/etcdserverpb.Cluster/MemberList"
+	// ClusterMemberPromoteProcedure is the fully-qualified name of the Cluster's MemberPromote RPC.
+	ClusterMemberPromoteProcedure = "/etcdserverpb.Cluster/MemberPromote"
+	// MaintenanceAlarmProcedure is the fully-qualified name of the Maintenance's Alarm RPC.
+	MaintenanceAlarmProcedure = "/etcdserverpb.Maintenance/Alarm"
+	// MaintenanceStatusProcedure is the fully-qualified name of the Maintenance's Status RPC.
+	MaintenanceStatusProcedure = "/etcdserverpb.Maintenance/Status"
+	// MaintenanceDefragmentProcedure is the fully-qualified name of the Maintenance's Defragment RPC.
+	MaintenanceDefragmentProcedure = "/etcdserverpb.Maintenance/Defragment"
+	// MaintenanceHashProcedure is the fully-qualified name of the Maintenance's Hash RPC.
+	MaintenanceHashProcedure = "/etcdserverpb.Maintenance/Hash"
+	// MaintenanceHashKVProcedure is the fully-qualified name of the Maintenance's HashKV RPC.
+	MaintenanceHashKVProcedure = "/etcdserverpb.Maintenance/HashKV"
+	// MaintenanceSnapshotProcedure is the fully-qualified name of the Maintenance's Snapshot RPC.
+	MaintenanceSnapshotProcedure = "/etcdserverpb.Maintenance/Snapshot"
+	// MaintenanceMoveLeaderProcedure is the fully-qualified name of the Maintenance's MoveLeader RPC.
+	MaintenanceMoveLeaderProcedure = "/etcdserverpb.Maintenance/MoveLeader"
+	// MaintenanceDowngradeProcedure is the fully-qualified name of the Maintenance's Downgrade RPC.
+	MaintenanceDowngradeProcedure = "/etcdserverpb.Maintenance/Downgrade"
+	// AuthAuthEnableProcedure is the fully-qualified name of the Auth's AuthEnable RPC.
+	AuthAuthEnableProcedure = "/etcdserverpb.Auth/AuthEnable"
+	// AuthAuthDisableProcedure is the fully-qualified name of the Auth's AuthDisable RPC.
+	AuthAuthDisableProcedure = "/etcdserverpb.Auth/AuthDisable"
+	// AuthAuthStatusProcedure is the fully-qualified name of the Auth's AuthStatus RPC.
+	AuthAuthStatusProcedure = "/etcdserverpb.Auth/AuthStatus"
+	// AuthAuthenticateProcedure is the fully-qualified name of the Auth's Authenticate RPC.
+	AuthAuthenticateProcedure = "/etcdserverpb.Auth/Authenticate"
+	// AuthUserAddProcedure is the fully-qualified name of the Auth's UserAdd RPC.
+	AuthUserAddProcedure = "/etcdserverpb.Auth/UserAdd"
+	// AuthUserGetProcedure is the fully-qualified name of the Auth's UserGet RPC.
+	AuthUserGetProcedure = "/etcdserverpb.Auth/UserGet"
+	// AuthUserListProcedure is the fully-qualified name of the Auth's UserList RPC.
+	AuthUserListProcedure = "/etcdserverpb.Auth/UserList"
+	// AuthUserDeleteProcedure is the fully-qualified name of the Auth's UserDelete RPC.
+	AuthUserDeleteProcedure = "/etcdserverpb.Auth/UserDelete"
+	// AuthUserChangePasswordProcedure is the fully-qualified name of the Auth's UserChangePassword RPC.
+	AuthUserChangePasswordProcedure = "/etcdserverpb.Auth/UserChangePassword"
+	// AuthUserGrantRoleProcedure is the fully-qualified name of the Auth's UserGrantRole RPC.
+	AuthUserGrantRoleProcedure = "/etcdserverpb.Auth/UserGrantRole"
+	// AuthUserRevokeRoleProcedure is the fully-qualified name of the Auth's UserRevokeRole RPC.
+	AuthUserRevokeRoleProcedure = "/etcdserverpb.Auth/UserRevokeRole"
+	// AuthRoleAddProcedure is the fully-qualified name of the Auth's RoleAdd RPC.
+	AuthRoleAddProcedure = "/etcdserverpb.Auth/RoleAdd"
+	// AuthRoleGetProcedure is the fully-qualified name of the Auth's RoleGet RPC.
+	AuthRoleGetProcedure = "/etcdserverpb.Auth/RoleGet"
+	// AuthRoleListProcedure is the fully-qualified name of the Auth's RoleList RPC.
+	AuthRoleListProcedure = "/etcdserverpb.Auth/RoleList"
+	// AuthRoleDeleteProcedure is the fully-qualified name of the Auth's RoleDelete RPC.
+	AuthRoleDeleteProcedure = "/etcdserverpb.Auth/RoleDelete"
+	// AuthRoleGrantPermissionProcedure is the fully-qualified name of the Auth's RoleGrantPermission
+	// RPC.
+	AuthRoleGrantPermissionProcedure = "/etcdserverpb.Auth/RoleGrantPermission"
+	// AuthRoleRevokePermissionProcedure is the fully-qualified name of the Auth's RoleRevokePermission
+	// RPC.
+	AuthRoleRevokePermissionProcedure = "/etcdserverpb.Auth/RoleRevokePermission"
+)
+
 // KVClient is a client for the etcdserverpb.KV service.
 type KVClient interface {
 	// Range gets the keys in the range from the key-value store.
@@ -70,27 +164,27 @@ func NewKVClient(httpClient connect_go.HTTPClient, baseURL string, opts ...conne
 	return &kVClient{
 		_range: connect_go.NewClient[etcdserverpb.RangeRequest, etcdserverpb.RangeResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.KV/Range",
+			baseURL+KVRangeProcedure,
 			opts...,
 		),
 		put: connect_go.NewClient[etcdserverpb.PutRequest, etcdserverpb.PutResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.KV/Put",
+			baseURL+KVPutProcedure,
 			opts...,
 		),
 		deleteRange: connect_go.NewClient[etcdserverpb.DeleteRangeRequest, etcdserverpb.DeleteRangeResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.KV/DeleteRange",
+			baseURL+KVDeleteRangeProcedure,
 			opts...,
 		),
 		txn: connect_go.NewClient[etcdserverpb.TxnRequest, etcdserverpb.TxnResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.KV/Txn",
+			baseURL+KVTxnProcedure,
 			opts...,
 		),
 		compact: connect_go.NewClient[etcdserverpb.CompactionRequest, etcdserverpb.CompactionResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.KV/Compact",
+			baseURL+KVCompactProcedure,
 			opts...,
 		),
 	}
@@ -159,33 +253,47 @@ type KVHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewKVHandler(svc KVHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle("/etcdserverpb.KV/Range", connect_go.NewUnaryHandler(
-		"/etcdserverpb.KV/Range",
+	kVRangeHandler := connect_go.NewUnaryHandler(
+		KVRangeProcedure,
 		svc.Range,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.KV/Put", connect_go.NewUnaryHandler(
-		"/etcdserverpb.KV/Put",
+	)
+	kVPutHandler := connect_go.NewUnaryHandler(
+		KVPutProcedure,
 		svc.Put,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.KV/DeleteRange", connect_go.NewUnaryHandler(
-		"/etcdserverpb.KV/DeleteRange",
+	)
+	kVDeleteRangeHandler := connect_go.NewUnaryHandler(
+		KVDeleteRangeProcedure,
 		svc.DeleteRange,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.KV/Txn", connect_go.NewUnaryHandler(
-		"/etcdserverpb.KV/Txn",
+	)
+	kVTxnHandler := connect_go.NewUnaryHandler(
+		KVTxnProcedure,
 		svc.Txn,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.KV/Compact", connect_go.NewUnaryHandler(
-		"/etcdserverpb.KV/Compact",
+	)
+	kVCompactHandler := connect_go.NewUnaryHandler(
+		KVCompactProcedure,
 		svc.Compact,
 		opts...,
-	))
-	return "/etcdserverpb.KV/", mux
+	)
+	return "/etcdserverpb.KV/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case KVRangeProcedure:
+			kVRangeHandler.ServeHTTP(w, r)
+		case KVPutProcedure:
+			kVPutHandler.ServeHTTP(w, r)
+		case KVDeleteRangeProcedure:
+			kVDeleteRangeHandler.ServeHTTP(w, r)
+		case KVTxnProcedure:
+			kVTxnHandler.ServeHTTP(w, r)
+		case KVCompactProcedure:
+			kVCompactHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedKVHandler returns CodeUnimplemented from all methods.
@@ -233,7 +341,7 @@ func NewWatchClient(httpClient connect_go.HTTPClient, baseURL string, opts ...co
 	return &watchClient{
 		watch: connect_go.NewClient[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Watch/Watch",
+			baseURL+WatchWatchProcedure,
 			opts...,
 		),
 	}
@@ -265,13 +373,19 @@ type WatchHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewWatchHandler(svc WatchHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle("/etcdserverpb.Watch/Watch", connect_go.NewBidiStreamHandler(
-		"/etcdserverpb.Watch/Watch",
+	watchWatchHandler := connect_go.NewBidiStreamHandler(
+		WatchWatchProcedure,
 		svc.Watch,
 		opts...,
-	))
-	return "/etcdserverpb.Watch/", mux
+	)
+	return "/etcdserverpb.Watch/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case WatchWatchProcedure:
+			watchWatchHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedWatchHandler returns CodeUnimplemented from all methods.
@@ -310,27 +424,27 @@ func NewLeaseClient(httpClient connect_go.HTTPClient, baseURL string, opts ...co
 	return &leaseClient{
 		leaseGrant: connect_go.NewClient[etcdserverpb.LeaseGrantRequest, etcdserverpb.LeaseGrantResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Lease/LeaseGrant",
+			baseURL+LeaseLeaseGrantProcedure,
 			opts...,
 		),
 		leaseRevoke: connect_go.NewClient[etcdserverpb.LeaseRevokeRequest, etcdserverpb.LeaseRevokeResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Lease/LeaseRevoke",
+			baseURL+LeaseLeaseRevokeProcedure,
 			opts...,
 		),
 		leaseKeepAlive: connect_go.NewClient[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Lease/LeaseKeepAlive",
+			baseURL+LeaseLeaseKeepAliveProcedure,
 			opts...,
 		),
 		leaseTimeToLive: connect_go.NewClient[etcdserverpb.LeaseTimeToLiveRequest, etcdserverpb.LeaseTimeToLiveResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Lease/LeaseTimeToLive",
+			baseURL+LeaseLeaseTimeToLiveProcedure,
 			opts...,
 		),
 		leaseLeases: connect_go.NewClient[etcdserverpb.LeaseLeasesRequest, etcdserverpb.LeaseLeasesResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Lease/LeaseLeases",
+			baseURL+LeaseLeaseLeasesProcedure,
 			opts...,
 		),
 	}
@@ -393,33 +507,47 @@ type LeaseHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewLeaseHandler(svc LeaseHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle("/etcdserverpb.Lease/LeaseGrant", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Lease/LeaseGrant",
+	leaseLeaseGrantHandler := connect_go.NewUnaryHandler(
+		LeaseLeaseGrantProcedure,
 		svc.LeaseGrant,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Lease/LeaseRevoke", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Lease/LeaseRevoke",
+	)
+	leaseLeaseRevokeHandler := connect_go.NewUnaryHandler(
+		LeaseLeaseRevokeProcedure,
 		svc.LeaseRevoke,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Lease/LeaseKeepAlive", connect_go.NewBidiStreamHandler(
-		"/etcdserverpb.Lease/LeaseKeepAlive",
+	)
+	leaseLeaseKeepAliveHandler := connect_go.NewBidiStreamHandler(
+		LeaseLeaseKeepAliveProcedure,
 		svc.LeaseKeepAlive,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Lease/LeaseTimeToLive", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Lease/LeaseTimeToLive",
+	)
+	leaseLeaseTimeToLiveHandler := connect_go.NewUnaryHandler(
+		LeaseLeaseTimeToLiveProcedure,
 		svc.LeaseTimeToLive,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Lease/LeaseLeases", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Lease/LeaseLeases",
+	)
+	leaseLeaseLeasesHandler := connect_go.NewUnaryHandler(
+		LeaseLeaseLeasesProcedure,
 		svc.LeaseLeases,
 		opts...,
-	))
-	return "/etcdserverpb.Lease/", mux
+	)
+	return "/etcdserverpb.Lease/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case LeaseLeaseGrantProcedure:
+			leaseLeaseGrantHandler.ServeHTTP(w, r)
+		case LeaseLeaseRevokeProcedure:
+			leaseLeaseRevokeHandler.ServeHTTP(w, r)
+		case LeaseLeaseKeepAliveProcedure:
+			leaseLeaseKeepAliveHandler.ServeHTTP(w, r)
+		case LeaseLeaseTimeToLiveProcedure:
+			leaseLeaseTimeToLiveHandler.ServeHTTP(w, r)
+		case LeaseLeaseLeasesProcedure:
+			leaseLeaseLeasesHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedLeaseHandler returns CodeUnimplemented from all methods.
@@ -471,27 +599,27 @@ func NewClusterClient(httpClient connect_go.HTTPClient, baseURL string, opts ...
 	return &clusterClient{
 		memberAdd: connect_go.NewClient[etcdserverpb.MemberAddRequest, etcdserverpb.MemberAddResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Cluster/MemberAdd",
+			baseURL+ClusterMemberAddProcedure,
 			opts...,
 		),
 		memberRemove: connect_go.NewClient[etcdserverpb.MemberRemoveRequest, etcdserverpb.MemberRemoveResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Cluster/MemberRemove",
+			baseURL+ClusterMemberRemoveProcedure,
 			opts...,
 		),
 		memberUpdate: connect_go.NewClient[etcdserverpb.MemberUpdateRequest, etcdserverpb.MemberUpdateResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Cluster/MemberUpdate",
+			baseURL+ClusterMemberUpdateProcedure,
 			opts...,
 		),
 		memberList: connect_go.NewClient[etcdserverpb.MemberListRequest, etcdserverpb.MemberListResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Cluster/MemberList",
+			baseURL+ClusterMemberListProcedure,
 			opts...,
 		),
 		memberPromote: connect_go.NewClient[etcdserverpb.MemberPromoteRequest, etcdserverpb.MemberPromoteResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Cluster/MemberPromote",
+			baseURL+ClusterMemberPromoteProcedure,
 			opts...,
 		),
 	}
@@ -551,33 +679,47 @@ type ClusterHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewClusterHandler(svc ClusterHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle("/etcdserverpb.Cluster/MemberAdd", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Cluster/MemberAdd",
+	clusterMemberAddHandler := connect_go.NewUnaryHandler(
+		ClusterMemberAddProcedure,
 		svc.MemberAdd,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Cluster/MemberRemove", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Cluster/MemberRemove",
+	)
+	clusterMemberRemoveHandler := connect_go.NewUnaryHandler(
+		ClusterMemberRemoveProcedure,
 		svc.MemberRemove,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Cluster/MemberUpdate", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Cluster/MemberUpdate",
+	)
+	clusterMemberUpdateHandler := connect_go.NewUnaryHandler(
+		ClusterMemberUpdateProcedure,
 		svc.MemberUpdate,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Cluster/MemberList", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Cluster/MemberList",
+	)
+	clusterMemberListHandler := connect_go.NewUnaryHandler(
+		ClusterMemberListProcedure,
 		svc.MemberList,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Cluster/MemberPromote", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Cluster/MemberPromote",
+	)
+	clusterMemberPromoteHandler := connect_go.NewUnaryHandler(
+		ClusterMemberPromoteProcedure,
 		svc.MemberPromote,
 		opts...,
-	))
-	return "/etcdserverpb.Cluster/", mux
+	)
+	return "/etcdserverpb.Cluster/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case ClusterMemberAddProcedure:
+			clusterMemberAddHandler.ServeHTTP(w, r)
+		case ClusterMemberRemoveProcedure:
+			clusterMemberRemoveHandler.ServeHTTP(w, r)
+		case ClusterMemberUpdateProcedure:
+			clusterMemberUpdateHandler.ServeHTTP(w, r)
+		case ClusterMemberListProcedure:
+			clusterMemberListHandler.ServeHTTP(w, r)
+		case ClusterMemberPromoteProcedure:
+			clusterMemberPromoteHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedClusterHandler returns CodeUnimplemented from all methods.
@@ -643,42 +785,42 @@ func NewMaintenanceClient(httpClient connect_go.HTTPClient, baseURL string, opts
 	return &maintenanceClient{
 		alarm: connect_go.NewClient[etcdserverpb.AlarmRequest, etcdserverpb.AlarmResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Maintenance/Alarm",
+			baseURL+MaintenanceAlarmProcedure,
 			opts...,
 		),
 		status: connect_go.NewClient[etcdserverpb.StatusRequest, etcdserverpb.StatusResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Maintenance/Status",
+			baseURL+MaintenanceStatusProcedure,
 			opts...,
 		),
 		defragment: connect_go.NewClient[etcdserverpb.DefragmentRequest, etcdserverpb.DefragmentResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Maintenance/Defragment",
+			baseURL+MaintenanceDefragmentProcedure,
 			opts...,
 		),
 		hash: connect_go.NewClient[etcdserverpb.HashRequest, etcdserverpb.HashResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Maintenance/Hash",
+			baseURL+MaintenanceHashProcedure,
 			opts...,
 		),
 		hashKV: connect_go.NewClient[etcdserverpb.HashKVRequest, etcdserverpb.HashKVResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Maintenance/HashKV",
+			baseURL+MaintenanceHashKVProcedure,
 			opts...,
 		),
 		snapshot: connect_go.NewClient[etcdserverpb.SnapshotRequest, etcdserverpb.SnapshotResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Maintenance/Snapshot",
+			baseURL+MaintenanceSnapshotProcedure,
 			opts...,
 		),
 		moveLeader: connect_go.NewClient[etcdserverpb.MoveLeaderRequest, etcdserverpb.MoveLeaderResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Maintenance/MoveLeader",
+			baseURL+MaintenanceMoveLeaderProcedure,
 			opts...,
 		),
 		downgrade: connect_go.NewClient[etcdserverpb.DowngradeRequest, etcdserverpb.DowngradeResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Maintenance/Downgrade",
+			baseURL+MaintenanceDowngradeProcedure,
 			opts...,
 		),
 	}
@@ -770,48 +912,68 @@ type MaintenanceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewMaintenanceHandler(svc MaintenanceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle("/etcdserverpb.Maintenance/Alarm", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Maintenance/Alarm",
+	maintenanceAlarmHandler := connect_go.NewUnaryHandler(
+		MaintenanceAlarmProcedure,
 		svc.Alarm,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Maintenance/Status", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Maintenance/Status",
+	)
+	maintenanceStatusHandler := connect_go.NewUnaryHandler(
+		MaintenanceStatusProcedure,
 		svc.Status,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Maintenance/Defragment", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Maintenance/Defragment",
+	)
+	maintenanceDefragmentHandler := connect_go.NewUnaryHandler(
+		MaintenanceDefragmentProcedure,
 		svc.Defragment,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Maintenance/Hash", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Maintenance/Hash",
+	)
+	maintenanceHashHandler := connect_go.NewUnaryHandler(
+		MaintenanceHashProcedure,
 		svc.Hash,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Maintenance/HashKV", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Maintenance/HashKV",
+	)
+	maintenanceHashKVHandler := connect_go.NewUnaryHandler(
+		MaintenanceHashKVProcedure,
 		svc.HashKV,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Maintenance/Snapshot", connect_go.NewServerStreamHandler(
-		"/etcdserverpb.Maintenance/Snapshot",
+	)
+	maintenanceSnapshotHandler := connect_go.NewServerStreamHandler(
+		MaintenanceSnapshotProcedure,
 		svc.Snapshot,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Maintenance/MoveLeader", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Maintenance/MoveLeader",
+	)
+	maintenanceMoveLeaderHandler := connect_go.NewUnaryHandler(
+		MaintenanceMoveLeaderProcedure,
 		svc.MoveLeader,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Maintenance/Downgrade", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Maintenance/Downgrade",
+	)
+	maintenanceDowngradeHandler := connect_go.NewUnaryHandler(
+		MaintenanceDowngradeProcedure,
 		svc.Downgrade,
 		opts...,
-	))
-	return "/etcdserverpb.Maintenance/", mux
+	)
+	return "/etcdserverpb.Maintenance/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case MaintenanceAlarmProcedure:
+			maintenanceAlarmHandler.ServeHTTP(w, r)
+		case MaintenanceStatusProcedure:
+			maintenanceStatusHandler.ServeHTTP(w, r)
+		case MaintenanceDefragmentProcedure:
+			maintenanceDefragmentHandler.ServeHTTP(w, r)
+		case MaintenanceHashProcedure:
+			maintenanceHashHandler.ServeHTTP(w, r)
+		case MaintenanceHashKVProcedure:
+			maintenanceHashKVHandler.ServeHTTP(w, r)
+		case MaintenanceSnapshotProcedure:
+			maintenanceSnapshotHandler.ServeHTTP(w, r)
+		case MaintenanceMoveLeaderProcedure:
+			maintenanceMoveLeaderHandler.ServeHTTP(w, r)
+		case MaintenanceDowngradeProcedure:
+			maintenanceDowngradeHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedMaintenanceHandler returns CodeUnimplemented from all methods.
@@ -899,87 +1061,87 @@ func NewAuthClient(httpClient connect_go.HTTPClient, baseURL string, opts ...con
 	return &authClient{
 		authEnable: connect_go.NewClient[etcdserverpb.AuthEnableRequest, etcdserverpb.AuthEnableResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/AuthEnable",
+			baseURL+AuthAuthEnableProcedure,
 			opts...,
 		),
 		authDisable: connect_go.NewClient[etcdserverpb.AuthDisableRequest, etcdserverpb.AuthDisableResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/AuthDisable",
+			baseURL+AuthAuthDisableProcedure,
 			opts...,
 		),
 		authStatus: connect_go.NewClient[etcdserverpb.AuthStatusRequest, etcdserverpb.AuthStatusResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/AuthStatus",
+			baseURL+AuthAuthStatusProcedure,
 			opts...,
 		),
 		authenticate: connect_go.NewClient[etcdserverpb.AuthenticateRequest, etcdserverpb.AuthenticateResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/Authenticate",
+			baseURL+AuthAuthenticateProcedure,
 			opts...,
 		),
 		userAdd: connect_go.NewClient[etcdserverpb.AuthUserAddRequest, etcdserverpb.AuthUserAddResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/UserAdd",
+			baseURL+AuthUserAddProcedure,
 			opts...,
 		),
 		userGet: connect_go.NewClient[etcdserverpb.AuthUserGetRequest, etcdserverpb.AuthUserGetResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/UserGet",
+			baseURL+AuthUserGetProcedure,
 			opts...,
 		),
 		userList: connect_go.NewClient[etcdserverpb.AuthUserListRequest, etcdserverpb.AuthUserListResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/UserList",
+			baseURL+AuthUserListProcedure,
 			opts...,
 		),
 		userDelete: connect_go.NewClient[etcdserverpb.AuthUserDeleteRequest, etcdserverpb.AuthUserDeleteResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/UserDelete",
+			baseURL+AuthUserDeleteProcedure,
 			opts...,
 		),
 		userChangePassword: connect_go.NewClient[etcdserverpb.AuthUserChangePasswordRequest, etcdserverpb.AuthUserChangePasswordResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/UserChangePassword",
+			baseURL+AuthUserChangePasswordProcedure,
 			opts...,
 		),
 		userGrantRole: connect_go.NewClient[etcdserverpb.AuthUserGrantRoleRequest, etcdserverpb.AuthUserGrantRoleResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/UserGrantRole",
+			baseURL+AuthUserGrantRoleProcedure,
 			opts...,
 		),
 		userRevokeRole: connect_go.NewClient[etcdserverpb.AuthUserRevokeRoleRequest, etcdserverpb.AuthUserRevokeRoleResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/UserRevokeRole",
+			baseURL+AuthUserRevokeRoleProcedure,
 			opts...,
 		),
 		roleAdd: connect_go.NewClient[etcdserverpb.AuthRoleAddRequest, etcdserverpb.AuthRoleAddResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/RoleAdd",
+			baseURL+AuthRoleAddProcedure,
 			opts...,
 		),
 		roleGet: connect_go.NewClient[etcdserverpb.AuthRoleGetRequest, etcdserverpb.AuthRoleGetResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/RoleGet",
+			baseURL+AuthRoleGetProcedure,
 			opts...,
 		),
 		roleList: connect_go.NewClient[etcdserverpb.AuthRoleListRequest, etcdserverpb.AuthRoleListResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/RoleList",
+			baseURL+AuthRoleListProcedure,
 			opts...,
 		),
 		roleDelete: connect_go.NewClient[etcdserverpb.AuthRoleDeleteRequest, etcdserverpb.AuthRoleDeleteResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/RoleDelete",
+			baseURL+AuthRoleDeleteProcedure,
 			opts...,
 		),
 		roleGrantPermission: connect_go.NewClient[etcdserverpb.AuthRoleGrantPermissionRequest, etcdserverpb.AuthRoleGrantPermissionResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/RoleGrantPermission",
+			baseURL+AuthRoleGrantPermissionProcedure,
 			opts...,
 		),
 		roleRevokePermission: connect_go.NewClient[etcdserverpb.AuthRoleRevokePermissionRequest, etcdserverpb.AuthRoleRevokePermissionResponse](
 			httpClient,
-			baseURL+"/etcdserverpb.Auth/RoleRevokePermission",
+			baseURL+AuthRoleRevokePermissionProcedure,
 			opts...,
 		),
 	}
@@ -1135,93 +1297,131 @@ type AuthHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewAuthHandler(svc AuthHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	mux := http.NewServeMux()
-	mux.Handle("/etcdserverpb.Auth/AuthEnable", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/AuthEnable",
+	authAuthEnableHandler := connect_go.NewUnaryHandler(
+		AuthAuthEnableProcedure,
 		svc.AuthEnable,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/AuthDisable", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/AuthDisable",
+	)
+	authAuthDisableHandler := connect_go.NewUnaryHandler(
+		AuthAuthDisableProcedure,
 		svc.AuthDisable,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/AuthStatus", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/AuthStatus",
+	)
+	authAuthStatusHandler := connect_go.NewUnaryHandler(
+		AuthAuthStatusProcedure,
 		svc.AuthStatus,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/Authenticate", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/Authenticate",
+	)
+	authAuthenticateHandler := connect_go.NewUnaryHandler(
+		AuthAuthenticateProcedure,
 		svc.Authenticate,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/UserAdd", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/UserAdd",
+	)
+	authUserAddHandler := connect_go.NewUnaryHandler(
+		AuthUserAddProcedure,
 		svc.UserAdd,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/UserGet", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/UserGet",
+	)
+	authUserGetHandler := connect_go.NewUnaryHandler(
+		AuthUserGetProcedure,
 		svc.UserGet,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/UserList", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/UserList",
+	)
+	authUserListHandler := connect_go.NewUnaryHandler(
+		AuthUserListProcedure,
 		svc.UserList,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/UserDelete", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/UserDelete",
+	)
+	authUserDeleteHandler := connect_go.NewUnaryHandler(
+		AuthUserDeleteProcedure,
 		svc.UserDelete,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/UserChangePassword", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/UserChangePassword",
+	)
+	authUserChangePasswordHandler := connect_go.NewUnaryHandler(
+		AuthUserChangePasswordProcedure,
 		svc.UserChangePassword,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/UserGrantRole", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/UserGrantRole",
+	)
+	authUserGrantRoleHandler := connect_go.NewUnaryHandler(
+		AuthUserGrantRoleProcedure,
 		svc.UserGrantRole,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/UserRevokeRole", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/UserRevokeRole",
+	)
+	authUserRevokeRoleHandler := connect_go.NewUnaryHandler(
+		AuthUserRevokeRoleProcedure,
 		svc.UserRevokeRole,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/RoleAdd", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/RoleAdd",
+	)
+	authRoleAddHandler := connect_go.NewUnaryHandler(
+		AuthRoleAddProcedure,
 		svc.RoleAdd,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/RoleGet", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/RoleGet",
+	)
+	authRoleGetHandler := connect_go.NewUnaryHandler(
+		AuthRoleGetProcedure,
 		svc.RoleGet,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/RoleList", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/RoleList",
+	)
+	authRoleListHandler := connect_go.NewUnaryHandler(
+		AuthRoleListProcedure,
 		svc.RoleList,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/RoleDelete", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/RoleDelete",
+	)
+	authRoleDeleteHandler := connect_go.NewUnaryHandler(
+		AuthRoleDeleteProcedure,
 		svc.RoleDelete,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/RoleGrantPermission", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/RoleGrantPermission",
+	)
+	authRoleGrantPermissionHandler := connect_go.NewUnaryHandler(
+		AuthRoleGrantPermissionProcedure,
 		svc.RoleGrantPermission,
 		opts...,
-	))
-	mux.Handle("/etcdserverpb.Auth/RoleRevokePermission", connect_go.NewUnaryHandler(
-		"/etcdserverpb.Auth/RoleRevokePermission",
+	)
+	authRoleRevokePermissionHandler := connect_go.NewUnaryHandler(
+		AuthRoleRevokePermissionProcedure,
 		svc.RoleRevokePermission,
 		opts...,
-	))
-	return "/etcdserverpb.Auth/", mux
+	)
+	return "/etcdserverpb.Auth/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case AuthAuthEnableProcedure:
+			authAuthEnableHandler.ServeHTTP(w, r)
+		case AuthAuthDisableProcedure:
+			authAuthDisableHandler.ServeHTTP(w, r)
+		case AuthAuthStatusProcedure:
+			authAuthStatusHandler.ServeHTTP(w, r)
+		case AuthAuthenticateProcedure:
+			authAuthenticateHandler.ServeHTTP(w, r)
+		case AuthUserAddProcedure:
+			authUserAddHandler.ServeHTTP(w, r)
+		case AuthUserGetProcedure:
+			authUserGetHandler.ServeHTTP(w, r)
+		case AuthUserListProcedure:
+			authUserListHandler.ServeHTTP(w, r)
+		case AuthUserDeleteProcedure:
+			authUserDeleteHandler.ServeHTTP(w, r)
+		case AuthUserChangePasswordProcedure:
+			authUserChangePasswordHandler.ServeHTTP(w, r)
+		case AuthUserGrantRoleProcedure:
+			authUserGrantRoleHandler.ServeHTTP(w, r)
+		case AuthUserRevokeRoleProcedure:
+			authUserRevokeRoleHandler.ServeHTTP(w, r)
+		case AuthRoleAddProcedure:
+			authRoleAddHandler.ServeHTTP(w, r)
+		case AuthRoleGetProcedure:
+			authRoleGetHandler.ServeHTTP(w, r)
+		case AuthRoleListProcedure:
+			authRoleListHandler.ServeHTTP(w, r)
+		case AuthRoleDeleteProcedure:
+			authRoleDeleteHandler.ServeHTTP(w, r)
+		case AuthRoleGrantPermissionProcedure:
+			authRoleGrantPermissionHandler.ServeHTTP(w, r)
+		case AuthRoleRevokePermissionProcedure:
+			authRoleRevokePermissionHandler.ServeHTTP(w, r)
+		default:
+			http.NotFound(w, r)
+		}
+	})
 }
 
 // UnimplementedAuthHandler returns CodeUnimplemented from all methods.
