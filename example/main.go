@@ -51,11 +51,13 @@ func main() {
 	done := make(chan struct{})
 
 	// first create our watch stream
-	stream := c.Watch().Watch(context.Background())
+	// r := client.Retryer(c.Watch()).Watch(context.Background())
+	stream := client.Retryer(context.TODO(), c.Watch()).Watch(context.Background())
 	go func() {
 		defer func() {
-			stream.CloseRequest()
-			stream.CloseResponse()
+			stream.Close()
+			// stream.CloseRequest()
+			// stream.CloseResponse()
 			close(done)
 		}()
 
@@ -109,7 +111,7 @@ func main() {
 		RequestUnion: &etcd.WatchRequest_CreateRequest{
 			CreateRequest: &etcd.WatchCreateRequest{
 				Key:      []byte("/foo/"),
-				RangeEnd: nextKey([]byte("/foo/")),
+				RangeEnd: client.NextKey([]byte("/foo/")),
 			},
 		},
 	}); err != nil {
@@ -267,19 +269,4 @@ func mTLSConfig(ca, cert, key string) (*tls.Config, error) {
 		RootCAs:      root,
 		Certificates: []tls.Certificate{leaf},
 	}, nil
-}
-
-func nextKey(key []byte) []byte {
-	end := make([]byte, len(key))
-	copy(end, key)
-	for i := len(end) - 1; i >= 0; i-- {
-		if end[i] < 0xff {
-			end[i] = end[i] + 1
-			end = end[:i+1]
-			return end
-		}
-	}
-	// next prefix does not exist (e.g., 0xffff);
-	// default to WithFromKey policy
-	return []byte{0}
 }
