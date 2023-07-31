@@ -87,6 +87,8 @@ func (i *Informer) List() [][]byte {
 	return l
 }
 
+const defaultPageSize = 100
+
 func (i *Informer) load(ctx context.Context) error {
 	i.cacheLock.Lock()
 
@@ -98,10 +100,13 @@ func (i *Informer) load(ctx context.Context) error {
 
 	pageSize := i.ListPageSize
 	if pageSize == 0 {
-		pageSize = 100
+		pageSize = defaultPageSize
 	}
 
 	startKey := i.Key
+
+	var limit int64
+	var serializable bool
 
 	for {
 		if ce := l.Check(zap.DebugLevel, "Range"); ce != nil {
@@ -110,14 +115,34 @@ func (i *Informer) load(ctx context.Context) error {
 				zap.Int64("revision", i.lastRevision),
 			)
 		}
+
+		// when lastRevision is 0, this is the first page we're requesting.
+		// for the first page, we want to do a small strongly consistent read
+		// (not serializable means linearizable read). We want to make a
+		// smaller read against the primary node to ensure we have a good
+		// starting state for pagination. Once we have a revision, we can
+		// serve the rest of the pages from a replica with an explicit
+		// revision.
+		if i.lastRevision == 0 {
+			if pageSize < defaultPageSize {
+				limit = pageSize
+			} else {
+				limit = defaultPageSize
+			}
+			serializable = false
+		} else {
+			limit = pageSize
+			serializable = true
+		}
+
 		resp, err := i.Client.KV().Range(ctx, connect.NewRequest(&etcdserverpb.RangeRequest{
 			SortOrder:    etcdserverpb.RangeRequest_ASCEND,
 			SortTarget:   etcdserverpb.RangeRequest_KEY,
 			Key:          startKey,
 			RangeEnd:     i.RangeEnd,
-			Limit:        pageSize,
+			Limit:        limit,
 			Revision:     i.lastRevision,
-			Serializable: true,
+			Serializable: serializable,
 		}))
 		if err != nil {
 			i.cacheLock.Unlock()
@@ -220,7 +245,6 @@ func (i *Informer) stream(ctx context.Context) error {
 				RangeEnd:      i.RangeEnd,
 
 				ProgressNotify: true,
-				// Fragment:       true,
 			},
 		},
 	}); err != nil {
