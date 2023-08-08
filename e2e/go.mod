@@ -5,7 +5,7 @@ go 1.20
 replace go.withmatt.com/connect-etcd => ../
 
 require (
-	github.com/bufbuild/connect-go v1.9.0
+	connectrpc.com/connect v1.9.1
 	go.etcd.io/etcd/client/v3 v3.5.7
 	go.withmatt.com/connect-etcd v0.0.0-00010101000000-000000000000
 )

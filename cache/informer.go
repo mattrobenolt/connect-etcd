@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	"go.uber.org/zap"
 	client "go.withmatt.com/connect-etcd"
 	"go.withmatt.com/connect-etcd/internal/retry"

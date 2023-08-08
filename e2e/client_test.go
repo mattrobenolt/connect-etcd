@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
 	etcd "go.withmatt.com/connect-etcd"

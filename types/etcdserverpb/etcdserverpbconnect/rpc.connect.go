@@ -5,9 +5,9 @@
 package etcdserverpbconnect
 
 import (
+	connect "connectrpc.com/connect"
 	context "context"
 	errors "errors"
-	connect_go "github.com/bufbuild/connect-go"
 	etcdserverpb "go.withmatt.com/connect-etcd/types/etcdserverpb"
 	http "net/http"
 	strings "strings"
@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect_go.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion0_1_0
 
 const (
 	// KVName is the fully-qualified name of the KV service.
@@ -132,24 +132,24 @@ const (
 // KVClient is a client for the etcdserverpb.KV service.
 type KVClient interface {
 	// Range gets the keys in the range from the key-value store.
-	Range(context.Context, *connect_go.Request[etcdserverpb.RangeRequest]) (*connect_go.Response[etcdserverpb.RangeResponse], error)
+	Range(context.Context, *connect.Request[etcdserverpb.RangeRequest]) (*connect.Response[etcdserverpb.RangeResponse], error)
 	// Put puts the given key into the key-value store.
 	// A put request increments the revision of the key-value store
 	// and generates one event in the event history.
-	Put(context.Context, *connect_go.Request[etcdserverpb.PutRequest]) (*connect_go.Response[etcdserverpb.PutResponse], error)
+	Put(context.Context, *connect.Request[etcdserverpb.PutRequest]) (*connect.Response[etcdserverpb.PutResponse], error)
 	// DeleteRange deletes the given range from the key-value store.
 	// A delete request increments the revision of the key-value store
 	// and generates a delete event in the event history for every deleted key.
-	DeleteRange(context.Context, *connect_go.Request[etcdserverpb.DeleteRangeRequest]) (*connect_go.Response[etcdserverpb.DeleteRangeResponse], error)
+	DeleteRange(context.Context, *connect.Request[etcdserverpb.DeleteRangeRequest]) (*connect.Response[etcdserverpb.DeleteRangeResponse], error)
 	// Txn processes multiple requests in a single transaction.
 	// A txn request increments the revision of the key-value store
 	// and generates events with the same revision for every completed request.
 	// It is not allowed to modify the same key several times within one txn.
-	Txn(context.Context, *connect_go.Request[etcdserverpb.TxnRequest]) (*connect_go.Response[etcdserverpb.TxnResponse], error)
+	Txn(context.Context, *connect.Request[etcdserverpb.TxnRequest]) (*connect.Response[etcdserverpb.TxnResponse], error)
 	// Compact compacts the event history in the etcd key-value store. The key-value
 	// store should be periodically compacted or the event history will continue to grow
 	// indefinitely.
-	Compact(context.Context, *connect_go.Request[etcdserverpb.CompactionRequest]) (*connect_go.Response[etcdserverpb.CompactionResponse], error)
+	Compact(context.Context, *connect.Request[etcdserverpb.CompactionRequest]) (*connect.Response[etcdserverpb.CompactionResponse], error)
 }
 
 // NewKVClient constructs a client for the etcdserverpb.KV service. By default, it uses the Connect
@@ -159,30 +159,30 @@ type KVClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewKVClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) KVClient {
+func NewKVClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) KVClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &kVClient{
-		_range: connect_go.NewClient[etcdserverpb.RangeRequest, etcdserverpb.RangeResponse](
+		_range: connect.NewClient[etcdserverpb.RangeRequest, etcdserverpb.RangeResponse](
 			httpClient,
 			baseURL+KVRangeProcedure,
 			opts...,
 		),
-		put: connect_go.NewClient[etcdserverpb.PutRequest, etcdserverpb.PutResponse](
+		put: connect.NewClient[etcdserverpb.PutRequest, etcdserverpb.PutResponse](
 			httpClient,
 			baseURL+KVPutProcedure,
 			opts...,
 		),
-		deleteRange: connect_go.NewClient[etcdserverpb.DeleteRangeRequest, etcdserverpb.DeleteRangeResponse](
+		deleteRange: connect.NewClient[etcdserverpb.DeleteRangeRequest, etcdserverpb.DeleteRangeResponse](
 			httpClient,
 			baseURL+KVDeleteRangeProcedure,
 			opts...,
 		),
-		txn: connect_go.NewClient[etcdserverpb.TxnRequest, etcdserverpb.TxnResponse](
+		txn: connect.NewClient[etcdserverpb.TxnRequest, etcdserverpb.TxnResponse](
 			httpClient,
 			baseURL+KVTxnProcedure,
 			opts...,
 		),
-		compact: connect_go.NewClient[etcdserverpb.CompactionRequest, etcdserverpb.CompactionResponse](
+		compact: connect.NewClient[etcdserverpb.CompactionRequest, etcdserverpb.CompactionResponse](
 			httpClient,
 			baseURL+KVCompactProcedure,
 			opts...,
@@ -192,59 +192,59 @@ func NewKVClient(httpClient connect_go.HTTPClient, baseURL string, opts ...conne
 
 // kVClient implements KVClient.
 type kVClient struct {
-	_range      *connect_go.Client[etcdserverpb.RangeRequest, etcdserverpb.RangeResponse]
-	put         *connect_go.Client[etcdserverpb.PutRequest, etcdserverpb.PutResponse]
-	deleteRange *connect_go.Client[etcdserverpb.DeleteRangeRequest, etcdserverpb.DeleteRangeResponse]
-	txn         *connect_go.Client[etcdserverpb.TxnRequest, etcdserverpb.TxnResponse]
-	compact     *connect_go.Client[etcdserverpb.CompactionRequest, etcdserverpb.CompactionResponse]
+	_range      *connect.Client[etcdserverpb.RangeRequest, etcdserverpb.RangeResponse]
+	put         *connect.Client[etcdserverpb.PutRequest, etcdserverpb.PutResponse]
+	deleteRange *connect.Client[etcdserverpb.DeleteRangeRequest, etcdserverpb.DeleteRangeResponse]
+	txn         *connect.Client[etcdserverpb.TxnRequest, etcdserverpb.TxnResponse]
+	compact     *connect.Client[etcdserverpb.CompactionRequest, etcdserverpb.CompactionResponse]
 }
 
 // Range calls etcdserverpb.KV.Range.
-func (c *kVClient) Range(ctx context.Context, req *connect_go.Request[etcdserverpb.RangeRequest]) (*connect_go.Response[etcdserverpb.RangeResponse], error) {
+func (c *kVClient) Range(ctx context.Context, req *connect.Request[etcdserverpb.RangeRequest]) (*connect.Response[etcdserverpb.RangeResponse], error) {
 	return c._range.CallUnary(ctx, req)
 }
 
 // Put calls etcdserverpb.KV.Put.
-func (c *kVClient) Put(ctx context.Context, req *connect_go.Request[etcdserverpb.PutRequest]) (*connect_go.Response[etcdserverpb.PutResponse], error) {
+func (c *kVClient) Put(ctx context.Context, req *connect.Request[etcdserverpb.PutRequest]) (*connect.Response[etcdserverpb.PutResponse], error) {
 	return c.put.CallUnary(ctx, req)
 }
 
 // DeleteRange calls etcdserverpb.KV.DeleteRange.
-func (c *kVClient) DeleteRange(ctx context.Context, req *connect_go.Request[etcdserverpb.DeleteRangeRequest]) (*connect_go.Response[etcdserverpb.DeleteRangeResponse], error) {
+func (c *kVClient) DeleteRange(ctx context.Context, req *connect.Request[etcdserverpb.DeleteRangeRequest]) (*connect.Response[etcdserverpb.DeleteRangeResponse], error) {
 	return c.deleteRange.CallUnary(ctx, req)
 }
 
 // Txn calls etcdserverpb.KV.Txn.
-func (c *kVClient) Txn(ctx context.Context, req *connect_go.Request[etcdserverpb.TxnRequest]) (*connect_go.Response[etcdserverpb.TxnResponse], error) {
+func (c *kVClient) Txn(ctx context.Context, req *connect.Request[etcdserverpb.TxnRequest]) (*connect.Response[etcdserverpb.TxnResponse], error) {
 	return c.txn.CallUnary(ctx, req)
 }
 
 // Compact calls etcdserverpb.KV.Compact.
-func (c *kVClient) Compact(ctx context.Context, req *connect_go.Request[etcdserverpb.CompactionRequest]) (*connect_go.Response[etcdserverpb.CompactionResponse], error) {
+func (c *kVClient) Compact(ctx context.Context, req *connect.Request[etcdserverpb.CompactionRequest]) (*connect.Response[etcdserverpb.CompactionResponse], error) {
 	return c.compact.CallUnary(ctx, req)
 }
 
 // KVHandler is an implementation of the etcdserverpb.KV service.
 type KVHandler interface {
 	// Range gets the keys in the range from the key-value store.
-	Range(context.Context, *connect_go.Request[etcdserverpb.RangeRequest]) (*connect_go.Response[etcdserverpb.RangeResponse], error)
+	Range(context.Context, *connect.Request[etcdserverpb.RangeRequest]) (*connect.Response[etcdserverpb.RangeResponse], error)
 	// Put puts the given key into the key-value store.
 	// A put request increments the revision of the key-value store
 	// and generates one event in the event history.
-	Put(context.Context, *connect_go.Request[etcdserverpb.PutRequest]) (*connect_go.Response[etcdserverpb.PutResponse], error)
+	Put(context.Context, *connect.Request[etcdserverpb.PutRequest]) (*connect.Response[etcdserverpb.PutResponse], error)
 	// DeleteRange deletes the given range from the key-value store.
 	// A delete request increments the revision of the key-value store
 	// and generates a delete event in the event history for every deleted key.
-	DeleteRange(context.Context, *connect_go.Request[etcdserverpb.DeleteRangeRequest]) (*connect_go.Response[etcdserverpb.DeleteRangeResponse], error)
+	DeleteRange(context.Context, *connect.Request[etcdserverpb.DeleteRangeRequest]) (*connect.Response[etcdserverpb.DeleteRangeResponse], error)
 	// Txn processes multiple requests in a single transaction.
 	// A txn request increments the revision of the key-value store
 	// and generates events with the same revision for every completed request.
 	// It is not allowed to modify the same key several times within one txn.
-	Txn(context.Context, *connect_go.Request[etcdserverpb.TxnRequest]) (*connect_go.Response[etcdserverpb.TxnResponse], error)
+	Txn(context.Context, *connect.Request[etcdserverpb.TxnRequest]) (*connect.Response[etcdserverpb.TxnResponse], error)
 	// Compact compacts the event history in the etcd key-value store. The key-value
 	// store should be periodically compacted or the event history will continue to grow
 	// indefinitely.
-	Compact(context.Context, *connect_go.Request[etcdserverpb.CompactionRequest]) (*connect_go.Response[etcdserverpb.CompactionResponse], error)
+	Compact(context.Context, *connect.Request[etcdserverpb.CompactionRequest]) (*connect.Response[etcdserverpb.CompactionResponse], error)
 }
 
 // NewKVHandler builds an HTTP handler from the service implementation. It returns the path on which
@@ -252,28 +252,28 @@ type KVHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewKVHandler(svc KVHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	kVRangeHandler := connect_go.NewUnaryHandler(
+func NewKVHandler(svc KVHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	kVRangeHandler := connect.NewUnaryHandler(
 		KVRangeProcedure,
 		svc.Range,
 		opts...,
 	)
-	kVPutHandler := connect_go.NewUnaryHandler(
+	kVPutHandler := connect.NewUnaryHandler(
 		KVPutProcedure,
 		svc.Put,
 		opts...,
 	)
-	kVDeleteRangeHandler := connect_go.NewUnaryHandler(
+	kVDeleteRangeHandler := connect.NewUnaryHandler(
 		KVDeleteRangeProcedure,
 		svc.DeleteRange,
 		opts...,
 	)
-	kVTxnHandler := connect_go.NewUnaryHandler(
+	kVTxnHandler := connect.NewUnaryHandler(
 		KVTxnProcedure,
 		svc.Txn,
 		opts...,
 	)
-	kVCompactHandler := connect_go.NewUnaryHandler(
+	kVCompactHandler := connect.NewUnaryHandler(
 		KVCompactProcedure,
 		svc.Compact,
 		opts...,
@@ -299,24 +299,24 @@ func NewKVHandler(svc KVHandler, opts ...connect_go.HandlerOption) (string, http
 // UnimplementedKVHandler returns CodeUnimplemented from all methods.
 type UnimplementedKVHandler struct{}
 
-func (UnimplementedKVHandler) Range(context.Context, *connect_go.Request[etcdserverpb.RangeRequest]) (*connect_go.Response[etcdserverpb.RangeResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.KV.Range is not implemented"))
+func (UnimplementedKVHandler) Range(context.Context, *connect.Request[etcdserverpb.RangeRequest]) (*connect.Response[etcdserverpb.RangeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.KV.Range is not implemented"))
 }
 
-func (UnimplementedKVHandler) Put(context.Context, *connect_go.Request[etcdserverpb.PutRequest]) (*connect_go.Response[etcdserverpb.PutResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.KV.Put is not implemented"))
+func (UnimplementedKVHandler) Put(context.Context, *connect.Request[etcdserverpb.PutRequest]) (*connect.Response[etcdserverpb.PutResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.KV.Put is not implemented"))
 }
 
-func (UnimplementedKVHandler) DeleteRange(context.Context, *connect_go.Request[etcdserverpb.DeleteRangeRequest]) (*connect_go.Response[etcdserverpb.DeleteRangeResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.KV.DeleteRange is not implemented"))
+func (UnimplementedKVHandler) DeleteRange(context.Context, *connect.Request[etcdserverpb.DeleteRangeRequest]) (*connect.Response[etcdserverpb.DeleteRangeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.KV.DeleteRange is not implemented"))
 }
 
-func (UnimplementedKVHandler) Txn(context.Context, *connect_go.Request[etcdserverpb.TxnRequest]) (*connect_go.Response[etcdserverpb.TxnResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.KV.Txn is not implemented"))
+func (UnimplementedKVHandler) Txn(context.Context, *connect.Request[etcdserverpb.TxnRequest]) (*connect.Response[etcdserverpb.TxnResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.KV.Txn is not implemented"))
 }
 
-func (UnimplementedKVHandler) Compact(context.Context, *connect_go.Request[etcdserverpb.CompactionRequest]) (*connect_go.Response[etcdserverpb.CompactionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.KV.Compact is not implemented"))
+func (UnimplementedKVHandler) Compact(context.Context, *connect.Request[etcdserverpb.CompactionRequest]) (*connect.Response[etcdserverpb.CompactionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.KV.Compact is not implemented"))
 }
 
 // WatchClient is a client for the etcdserverpb.Watch service.
@@ -326,7 +326,7 @@ type WatchClient interface {
 	// stream sends events. One watch RPC can watch on multiple key ranges, streaming events
 	// for several watches at once. The entire event history can be watched starting from the
 	// last compaction revision.
-	Watch(context.Context) *connect_go.BidiStreamForClient[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse]
+	Watch(context.Context) *connect.BidiStreamForClient[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse]
 }
 
 // NewWatchClient constructs a client for the etcdserverpb.Watch service. By default, it uses the
@@ -336,10 +336,10 @@ type WatchClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewWatchClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) WatchClient {
+func NewWatchClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) WatchClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &watchClient{
-		watch: connect_go.NewClient[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse](
+		watch: connect.NewClient[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse](
 			httpClient,
 			baseURL+WatchWatchProcedure,
 			opts...,
@@ -349,11 +349,11 @@ func NewWatchClient(httpClient connect_go.HTTPClient, baseURL string, opts ...co
 
 // watchClient implements WatchClient.
 type watchClient struct {
-	watch *connect_go.Client[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse]
+	watch *connect.Client[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse]
 }
 
 // Watch calls etcdserverpb.Watch.Watch.
-func (c *watchClient) Watch(ctx context.Context) *connect_go.BidiStreamForClient[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse] {
+func (c *watchClient) Watch(ctx context.Context) *connect.BidiStreamForClient[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse] {
 	return c.watch.CallBidiStream(ctx)
 }
 
@@ -364,7 +364,7 @@ type WatchHandler interface {
 	// stream sends events. One watch RPC can watch on multiple key ranges, streaming events
 	// for several watches at once. The entire event history can be watched starting from the
 	// last compaction revision.
-	Watch(context.Context, *connect_go.BidiStream[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse]) error
+	Watch(context.Context, *connect.BidiStream[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse]) error
 }
 
 // NewWatchHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -372,8 +372,8 @@ type WatchHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewWatchHandler(svc WatchHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	watchWatchHandler := connect_go.NewBidiStreamHandler(
+func NewWatchHandler(svc WatchHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	watchWatchHandler := connect.NewBidiStreamHandler(
 		WatchWatchProcedure,
 		svc.Watch,
 		opts...,
@@ -391,8 +391,8 @@ func NewWatchHandler(svc WatchHandler, opts ...connect_go.HandlerOption) (string
 // UnimplementedWatchHandler returns CodeUnimplemented from all methods.
 type UnimplementedWatchHandler struct{}
 
-func (UnimplementedWatchHandler) Watch(context.Context, *connect_go.BidiStream[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Watch.Watch is not implemented"))
+func (UnimplementedWatchHandler) Watch(context.Context, *connect.BidiStream[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Watch.Watch is not implemented"))
 }
 
 // LeaseClient is a client for the etcdserverpb.Lease service.
@@ -400,16 +400,16 @@ type LeaseClient interface {
 	// LeaseGrant creates a lease which expires if the server does not receive a keepAlive
 	// within a given time to live period. All keys attached to the lease will be expired and
 	// deleted if the lease expires. Each expired key generates a delete event in the event history.
-	LeaseGrant(context.Context, *connect_go.Request[etcdserverpb.LeaseGrantRequest]) (*connect_go.Response[etcdserverpb.LeaseGrantResponse], error)
+	LeaseGrant(context.Context, *connect.Request[etcdserverpb.LeaseGrantRequest]) (*connect.Response[etcdserverpb.LeaseGrantResponse], error)
 	// LeaseRevoke revokes a lease. All keys attached to the lease will expire and be deleted.
-	LeaseRevoke(context.Context, *connect_go.Request[etcdserverpb.LeaseRevokeRequest]) (*connect_go.Response[etcdserverpb.LeaseRevokeResponse], error)
+	LeaseRevoke(context.Context, *connect.Request[etcdserverpb.LeaseRevokeRequest]) (*connect.Response[etcdserverpb.LeaseRevokeResponse], error)
 	// LeaseKeepAlive keeps the lease alive by streaming keep alive requests from the client
 	// to the server and streaming keep alive responses from the server to the client.
-	LeaseKeepAlive(context.Context) *connect_go.BidiStreamForClient[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse]
+	LeaseKeepAlive(context.Context) *connect.BidiStreamForClient[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse]
 	// LeaseTimeToLive retrieves lease information.
-	LeaseTimeToLive(context.Context, *connect_go.Request[etcdserverpb.LeaseTimeToLiveRequest]) (*connect_go.Response[etcdserverpb.LeaseTimeToLiveResponse], error)
+	LeaseTimeToLive(context.Context, *connect.Request[etcdserverpb.LeaseTimeToLiveRequest]) (*connect.Response[etcdserverpb.LeaseTimeToLiveResponse], error)
 	// LeaseLeases lists all existing leases.
-	LeaseLeases(context.Context, *connect_go.Request[etcdserverpb.LeaseLeasesRequest]) (*connect_go.Response[etcdserverpb.LeaseLeasesResponse], error)
+	LeaseLeases(context.Context, *connect.Request[etcdserverpb.LeaseLeasesRequest]) (*connect.Response[etcdserverpb.LeaseLeasesResponse], error)
 }
 
 // NewLeaseClient constructs a client for the etcdserverpb.Lease service. By default, it uses the
@@ -419,30 +419,30 @@ type LeaseClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewLeaseClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) LeaseClient {
+func NewLeaseClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) LeaseClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &leaseClient{
-		leaseGrant: connect_go.NewClient[etcdserverpb.LeaseGrantRequest, etcdserverpb.LeaseGrantResponse](
+		leaseGrant: connect.NewClient[etcdserverpb.LeaseGrantRequest, etcdserverpb.LeaseGrantResponse](
 			httpClient,
 			baseURL+LeaseLeaseGrantProcedure,
 			opts...,
 		),
-		leaseRevoke: connect_go.NewClient[etcdserverpb.LeaseRevokeRequest, etcdserverpb.LeaseRevokeResponse](
+		leaseRevoke: connect.NewClient[etcdserverpb.LeaseRevokeRequest, etcdserverpb.LeaseRevokeResponse](
 			httpClient,
 			baseURL+LeaseLeaseRevokeProcedure,
 			opts...,
 		),
-		leaseKeepAlive: connect_go.NewClient[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse](
+		leaseKeepAlive: connect.NewClient[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse](
 			httpClient,
 			baseURL+LeaseLeaseKeepAliveProcedure,
 			opts...,
 		),
-		leaseTimeToLive: connect_go.NewClient[etcdserverpb.LeaseTimeToLiveRequest, etcdserverpb.LeaseTimeToLiveResponse](
+		leaseTimeToLive: connect.NewClient[etcdserverpb.LeaseTimeToLiveRequest, etcdserverpb.LeaseTimeToLiveResponse](
 			httpClient,
 			baseURL+LeaseLeaseTimeToLiveProcedure,
 			opts...,
 		),
-		leaseLeases: connect_go.NewClient[etcdserverpb.LeaseLeasesRequest, etcdserverpb.LeaseLeasesResponse](
+		leaseLeases: connect.NewClient[etcdserverpb.LeaseLeasesRequest, etcdserverpb.LeaseLeasesResponse](
 			httpClient,
 			baseURL+LeaseLeaseLeasesProcedure,
 			opts...,
@@ -452,35 +452,35 @@ func NewLeaseClient(httpClient connect_go.HTTPClient, baseURL string, opts ...co
 
 // leaseClient implements LeaseClient.
 type leaseClient struct {
-	leaseGrant      *connect_go.Client[etcdserverpb.LeaseGrantRequest, etcdserverpb.LeaseGrantResponse]
-	leaseRevoke     *connect_go.Client[etcdserverpb.LeaseRevokeRequest, etcdserverpb.LeaseRevokeResponse]
-	leaseKeepAlive  *connect_go.Client[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse]
-	leaseTimeToLive *connect_go.Client[etcdserverpb.LeaseTimeToLiveRequest, etcdserverpb.LeaseTimeToLiveResponse]
-	leaseLeases     *connect_go.Client[etcdserverpb.LeaseLeasesRequest, etcdserverpb.LeaseLeasesResponse]
+	leaseGrant      *connect.Client[etcdserverpb.LeaseGrantRequest, etcdserverpb.LeaseGrantResponse]
+	leaseRevoke     *connect.Client[etcdserverpb.LeaseRevokeRequest, etcdserverpb.LeaseRevokeResponse]
+	leaseKeepAlive  *connect.Client[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse]
+	leaseTimeToLive *connect.Client[etcdserverpb.LeaseTimeToLiveRequest, etcdserverpb.LeaseTimeToLiveResponse]
+	leaseLeases     *connect.Client[etcdserverpb.LeaseLeasesRequest, etcdserverpb.LeaseLeasesResponse]
 }
 
 // LeaseGrant calls etcdserverpb.Lease.LeaseGrant.
-func (c *leaseClient) LeaseGrant(ctx context.Context, req *connect_go.Request[etcdserverpb.LeaseGrantRequest]) (*connect_go.Response[etcdserverpb.LeaseGrantResponse], error) {
+func (c *leaseClient) LeaseGrant(ctx context.Context, req *connect.Request[etcdserverpb.LeaseGrantRequest]) (*connect.Response[etcdserverpb.LeaseGrantResponse], error) {
 	return c.leaseGrant.CallUnary(ctx, req)
 }
 
 // LeaseRevoke calls etcdserverpb.Lease.LeaseRevoke.
-func (c *leaseClient) LeaseRevoke(ctx context.Context, req *connect_go.Request[etcdserverpb.LeaseRevokeRequest]) (*connect_go.Response[etcdserverpb.LeaseRevokeResponse], error) {
+func (c *leaseClient) LeaseRevoke(ctx context.Context, req *connect.Request[etcdserverpb.LeaseRevokeRequest]) (*connect.Response[etcdserverpb.LeaseRevokeResponse], error) {
 	return c.leaseRevoke.CallUnary(ctx, req)
 }
 
 // LeaseKeepAlive calls etcdserverpb.Lease.LeaseKeepAlive.
-func (c *leaseClient) LeaseKeepAlive(ctx context.Context) *connect_go.BidiStreamForClient[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse] {
+func (c *leaseClient) LeaseKeepAlive(ctx context.Context) *connect.BidiStreamForClient[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse] {
 	return c.leaseKeepAlive.CallBidiStream(ctx)
 }
 
 // LeaseTimeToLive calls etcdserverpb.Lease.LeaseTimeToLive.
-func (c *leaseClient) LeaseTimeToLive(ctx context.Context, req *connect_go.Request[etcdserverpb.LeaseTimeToLiveRequest]) (*connect_go.Response[etcdserverpb.LeaseTimeToLiveResponse], error) {
+func (c *leaseClient) LeaseTimeToLive(ctx context.Context, req *connect.Request[etcdserverpb.LeaseTimeToLiveRequest]) (*connect.Response[etcdserverpb.LeaseTimeToLiveResponse], error) {
 	return c.leaseTimeToLive.CallUnary(ctx, req)
 }
 
 // LeaseLeases calls etcdserverpb.Lease.LeaseLeases.
-func (c *leaseClient) LeaseLeases(ctx context.Context, req *connect_go.Request[etcdserverpb.LeaseLeasesRequest]) (*connect_go.Response[etcdserverpb.LeaseLeasesResponse], error) {
+func (c *leaseClient) LeaseLeases(ctx context.Context, req *connect.Request[etcdserverpb.LeaseLeasesRequest]) (*connect.Response[etcdserverpb.LeaseLeasesResponse], error) {
 	return c.leaseLeases.CallUnary(ctx, req)
 }
 
@@ -489,16 +489,16 @@ type LeaseHandler interface {
 	// LeaseGrant creates a lease which expires if the server does not receive a keepAlive
 	// within a given time to live period. All keys attached to the lease will be expired and
 	// deleted if the lease expires. Each expired key generates a delete event in the event history.
-	LeaseGrant(context.Context, *connect_go.Request[etcdserverpb.LeaseGrantRequest]) (*connect_go.Response[etcdserverpb.LeaseGrantResponse], error)
+	LeaseGrant(context.Context, *connect.Request[etcdserverpb.LeaseGrantRequest]) (*connect.Response[etcdserverpb.LeaseGrantResponse], error)
 	// LeaseRevoke revokes a lease. All keys attached to the lease will expire and be deleted.
-	LeaseRevoke(context.Context, *connect_go.Request[etcdserverpb.LeaseRevokeRequest]) (*connect_go.Response[etcdserverpb.LeaseRevokeResponse], error)
+	LeaseRevoke(context.Context, *connect.Request[etcdserverpb.LeaseRevokeRequest]) (*connect.Response[etcdserverpb.LeaseRevokeResponse], error)
 	// LeaseKeepAlive keeps the lease alive by streaming keep alive requests from the client
 	// to the server and streaming keep alive responses from the server to the client.
-	LeaseKeepAlive(context.Context, *connect_go.BidiStream[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse]) error
+	LeaseKeepAlive(context.Context, *connect.BidiStream[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse]) error
 	// LeaseTimeToLive retrieves lease information.
-	LeaseTimeToLive(context.Context, *connect_go.Request[etcdserverpb.LeaseTimeToLiveRequest]) (*connect_go.Response[etcdserverpb.LeaseTimeToLiveResponse], error)
+	LeaseTimeToLive(context.Context, *connect.Request[etcdserverpb.LeaseTimeToLiveRequest]) (*connect.Response[etcdserverpb.LeaseTimeToLiveResponse], error)
 	// LeaseLeases lists all existing leases.
-	LeaseLeases(context.Context, *connect_go.Request[etcdserverpb.LeaseLeasesRequest]) (*connect_go.Response[etcdserverpb.LeaseLeasesResponse], error)
+	LeaseLeases(context.Context, *connect.Request[etcdserverpb.LeaseLeasesRequest]) (*connect.Response[etcdserverpb.LeaseLeasesResponse], error)
 }
 
 // NewLeaseHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -506,28 +506,28 @@ type LeaseHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewLeaseHandler(svc LeaseHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	leaseLeaseGrantHandler := connect_go.NewUnaryHandler(
+func NewLeaseHandler(svc LeaseHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	leaseLeaseGrantHandler := connect.NewUnaryHandler(
 		LeaseLeaseGrantProcedure,
 		svc.LeaseGrant,
 		opts...,
 	)
-	leaseLeaseRevokeHandler := connect_go.NewUnaryHandler(
+	leaseLeaseRevokeHandler := connect.NewUnaryHandler(
 		LeaseLeaseRevokeProcedure,
 		svc.LeaseRevoke,
 		opts...,
 	)
-	leaseLeaseKeepAliveHandler := connect_go.NewBidiStreamHandler(
+	leaseLeaseKeepAliveHandler := connect.NewBidiStreamHandler(
 		LeaseLeaseKeepAliveProcedure,
 		svc.LeaseKeepAlive,
 		opts...,
 	)
-	leaseLeaseTimeToLiveHandler := connect_go.NewUnaryHandler(
+	leaseLeaseTimeToLiveHandler := connect.NewUnaryHandler(
 		LeaseLeaseTimeToLiveProcedure,
 		svc.LeaseTimeToLive,
 		opts...,
 	)
-	leaseLeaseLeasesHandler := connect_go.NewUnaryHandler(
+	leaseLeaseLeasesHandler := connect.NewUnaryHandler(
 		LeaseLeaseLeasesProcedure,
 		svc.LeaseLeases,
 		opts...,
@@ -553,38 +553,38 @@ func NewLeaseHandler(svc LeaseHandler, opts ...connect_go.HandlerOption) (string
 // UnimplementedLeaseHandler returns CodeUnimplemented from all methods.
 type UnimplementedLeaseHandler struct{}
 
-func (UnimplementedLeaseHandler) LeaseGrant(context.Context, *connect_go.Request[etcdserverpb.LeaseGrantRequest]) (*connect_go.Response[etcdserverpb.LeaseGrantResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseGrant is not implemented"))
+func (UnimplementedLeaseHandler) LeaseGrant(context.Context, *connect.Request[etcdserverpb.LeaseGrantRequest]) (*connect.Response[etcdserverpb.LeaseGrantResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseGrant is not implemented"))
 }
 
-func (UnimplementedLeaseHandler) LeaseRevoke(context.Context, *connect_go.Request[etcdserverpb.LeaseRevokeRequest]) (*connect_go.Response[etcdserverpb.LeaseRevokeResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseRevoke is not implemented"))
+func (UnimplementedLeaseHandler) LeaseRevoke(context.Context, *connect.Request[etcdserverpb.LeaseRevokeRequest]) (*connect.Response[etcdserverpb.LeaseRevokeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseRevoke is not implemented"))
 }
 
-func (UnimplementedLeaseHandler) LeaseKeepAlive(context.Context, *connect_go.BidiStream[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseKeepAlive is not implemented"))
+func (UnimplementedLeaseHandler) LeaseKeepAlive(context.Context, *connect.BidiStream[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseKeepAlive is not implemented"))
 }
 
-func (UnimplementedLeaseHandler) LeaseTimeToLive(context.Context, *connect_go.Request[etcdserverpb.LeaseTimeToLiveRequest]) (*connect_go.Response[etcdserverpb.LeaseTimeToLiveResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseTimeToLive is not implemented"))
+func (UnimplementedLeaseHandler) LeaseTimeToLive(context.Context, *connect.Request[etcdserverpb.LeaseTimeToLiveRequest]) (*connect.Response[etcdserverpb.LeaseTimeToLiveResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseTimeToLive is not implemented"))
 }
 
-func (UnimplementedLeaseHandler) LeaseLeases(context.Context, *connect_go.Request[etcdserverpb.LeaseLeasesRequest]) (*connect_go.Response[etcdserverpb.LeaseLeasesResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseLeases is not implemented"))
+func (UnimplementedLeaseHandler) LeaseLeases(context.Context, *connect.Request[etcdserverpb.LeaseLeasesRequest]) (*connect.Response[etcdserverpb.LeaseLeasesResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Lease.LeaseLeases is not implemented"))
 }
 
 // ClusterClient is a client for the etcdserverpb.Cluster service.
 type ClusterClient interface {
 	// MemberAdd adds a member into the cluster.
-	MemberAdd(context.Context, *connect_go.Request[etcdserverpb.MemberAddRequest]) (*connect_go.Response[etcdserverpb.MemberAddResponse], error)
+	MemberAdd(context.Context, *connect.Request[etcdserverpb.MemberAddRequest]) (*connect.Response[etcdserverpb.MemberAddResponse], error)
 	// MemberRemove removes an existing member from the cluster.
-	MemberRemove(context.Context, *connect_go.Request[etcdserverpb.MemberRemoveRequest]) (*connect_go.Response[etcdserverpb.MemberRemoveResponse], error)
+	MemberRemove(context.Context, *connect.Request[etcdserverpb.MemberRemoveRequest]) (*connect.Response[etcdserverpb.MemberRemoveResponse], error)
 	// MemberUpdate updates the member configuration.
-	MemberUpdate(context.Context, *connect_go.Request[etcdserverpb.MemberUpdateRequest]) (*connect_go.Response[etcdserverpb.MemberUpdateResponse], error)
+	MemberUpdate(context.Context, *connect.Request[etcdserverpb.MemberUpdateRequest]) (*connect.Response[etcdserverpb.MemberUpdateResponse], error)
 	// MemberList lists all the members in the cluster.
-	MemberList(context.Context, *connect_go.Request[etcdserverpb.MemberListRequest]) (*connect_go.Response[etcdserverpb.MemberListResponse], error)
+	MemberList(context.Context, *connect.Request[etcdserverpb.MemberListRequest]) (*connect.Response[etcdserverpb.MemberListResponse], error)
 	// MemberPromote promotes a member from raft learner (non-voting) to raft voting member.
-	MemberPromote(context.Context, *connect_go.Request[etcdserverpb.MemberPromoteRequest]) (*connect_go.Response[etcdserverpb.MemberPromoteResponse], error)
+	MemberPromote(context.Context, *connect.Request[etcdserverpb.MemberPromoteRequest]) (*connect.Response[etcdserverpb.MemberPromoteResponse], error)
 }
 
 // NewClusterClient constructs a client for the etcdserverpb.Cluster service. By default, it uses
@@ -594,30 +594,30 @@ type ClusterClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewClusterClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) ClusterClient {
+func NewClusterClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) ClusterClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &clusterClient{
-		memberAdd: connect_go.NewClient[etcdserverpb.MemberAddRequest, etcdserverpb.MemberAddResponse](
+		memberAdd: connect.NewClient[etcdserverpb.MemberAddRequest, etcdserverpb.MemberAddResponse](
 			httpClient,
 			baseURL+ClusterMemberAddProcedure,
 			opts...,
 		),
-		memberRemove: connect_go.NewClient[etcdserverpb.MemberRemoveRequest, etcdserverpb.MemberRemoveResponse](
+		memberRemove: connect.NewClient[etcdserverpb.MemberRemoveRequest, etcdserverpb.MemberRemoveResponse](
 			httpClient,
 			baseURL+ClusterMemberRemoveProcedure,
 			opts...,
 		),
-		memberUpdate: connect_go.NewClient[etcdserverpb.MemberUpdateRequest, etcdserverpb.MemberUpdateResponse](
+		memberUpdate: connect.NewClient[etcdserverpb.MemberUpdateRequest, etcdserverpb.MemberUpdateResponse](
 			httpClient,
 			baseURL+ClusterMemberUpdateProcedure,
 			opts...,
 		),
-		memberList: connect_go.NewClient[etcdserverpb.MemberListRequest, etcdserverpb.MemberListResponse](
+		memberList: connect.NewClient[etcdserverpb.MemberListRequest, etcdserverpb.MemberListResponse](
 			httpClient,
 			baseURL+ClusterMemberListProcedure,
 			opts...,
 		),
-		memberPromote: connect_go.NewClient[etcdserverpb.MemberPromoteRequest, etcdserverpb.MemberPromoteResponse](
+		memberPromote: connect.NewClient[etcdserverpb.MemberPromoteRequest, etcdserverpb.MemberPromoteResponse](
 			httpClient,
 			baseURL+ClusterMemberPromoteProcedure,
 			opts...,
@@ -627,50 +627,50 @@ func NewClusterClient(httpClient connect_go.HTTPClient, baseURL string, opts ...
 
 // clusterClient implements ClusterClient.
 type clusterClient struct {
-	memberAdd     *connect_go.Client[etcdserverpb.MemberAddRequest, etcdserverpb.MemberAddResponse]
-	memberRemove  *connect_go.Client[etcdserverpb.MemberRemoveRequest, etcdserverpb.MemberRemoveResponse]
-	memberUpdate  *connect_go.Client[etcdserverpb.MemberUpdateRequest, etcdserverpb.MemberUpdateResponse]
-	memberList    *connect_go.Client[etcdserverpb.MemberListRequest, etcdserverpb.MemberListResponse]
-	memberPromote *connect_go.Client[etcdserverpb.MemberPromoteRequest, etcdserverpb.MemberPromoteResponse]
+	memberAdd     *connect.Client[etcdserverpb.MemberAddRequest, etcdserverpb.MemberAddResponse]
+	memberRemove  *connect.Client[etcdserverpb.MemberRemoveRequest, etcdserverpb.MemberRemoveResponse]
+	memberUpdate  *connect.Client[etcdserverpb.MemberUpdateRequest, etcdserverpb.MemberUpdateResponse]
+	memberList    *connect.Client[etcdserverpb.MemberListRequest, etcdserverpb.MemberListResponse]
+	memberPromote *connect.Client[etcdserverpb.MemberPromoteRequest, etcdserverpb.MemberPromoteResponse]
 }
 
 // MemberAdd calls etcdserverpb.Cluster.MemberAdd.
-func (c *clusterClient) MemberAdd(ctx context.Context, req *connect_go.Request[etcdserverpb.MemberAddRequest]) (*connect_go.Response[etcdserverpb.MemberAddResponse], error) {
+func (c *clusterClient) MemberAdd(ctx context.Context, req *connect.Request[etcdserverpb.MemberAddRequest]) (*connect.Response[etcdserverpb.MemberAddResponse], error) {
 	return c.memberAdd.CallUnary(ctx, req)
 }
 
 // MemberRemove calls etcdserverpb.Cluster.MemberRemove.
-func (c *clusterClient) MemberRemove(ctx context.Context, req *connect_go.Request[etcdserverpb.MemberRemoveRequest]) (*connect_go.Response[etcdserverpb.MemberRemoveResponse], error) {
+func (c *clusterClient) MemberRemove(ctx context.Context, req *connect.Request[etcdserverpb.MemberRemoveRequest]) (*connect.Response[etcdserverpb.MemberRemoveResponse], error) {
 	return c.memberRemove.CallUnary(ctx, req)
 }
 
 // MemberUpdate calls etcdserverpb.Cluster.MemberUpdate.
-func (c *clusterClient) MemberUpdate(ctx context.Context, req *connect_go.Request[etcdserverpb.MemberUpdateRequest]) (*connect_go.Response[etcdserverpb.MemberUpdateResponse], error) {
+func (c *clusterClient) MemberUpdate(ctx context.Context, req *connect.Request[etcdserverpb.MemberUpdateRequest]) (*connect.Response[etcdserverpb.MemberUpdateResponse], error) {
 	return c.memberUpdate.CallUnary(ctx, req)
 }
 
 // MemberList calls etcdserverpb.Cluster.MemberList.
-func (c *clusterClient) MemberList(ctx context.Context, req *connect_go.Request[etcdserverpb.MemberListRequest]) (*connect_go.Response[etcdserverpb.MemberListResponse], error) {
+func (c *clusterClient) MemberList(ctx context.Context, req *connect.Request[etcdserverpb.MemberListRequest]) (*connect.Response[etcdserverpb.MemberListResponse], error) {
 	return c.memberList.CallUnary(ctx, req)
 }
 
 // MemberPromote calls etcdserverpb.Cluster.MemberPromote.
-func (c *clusterClient) MemberPromote(ctx context.Context, req *connect_go.Request[etcdserverpb.MemberPromoteRequest]) (*connect_go.Response[etcdserverpb.MemberPromoteResponse], error) {
+func (c *clusterClient) MemberPromote(ctx context.Context, req *connect.Request[etcdserverpb.MemberPromoteRequest]) (*connect.Response[etcdserverpb.MemberPromoteResponse], error) {
 	return c.memberPromote.CallUnary(ctx, req)
 }
 
 // ClusterHandler is an implementation of the etcdserverpb.Cluster service.
 type ClusterHandler interface {
 	// MemberAdd adds a member into the cluster.
-	MemberAdd(context.Context, *connect_go.Request[etcdserverpb.MemberAddRequest]) (*connect_go.Response[etcdserverpb.MemberAddResponse], error)
+	MemberAdd(context.Context, *connect.Request[etcdserverpb.MemberAddRequest]) (*connect.Response[etcdserverpb.MemberAddResponse], error)
 	// MemberRemove removes an existing member from the cluster.
-	MemberRemove(context.Context, *connect_go.Request[etcdserverpb.MemberRemoveRequest]) (*connect_go.Response[etcdserverpb.MemberRemoveResponse], error)
+	MemberRemove(context.Context, *connect.Request[etcdserverpb.MemberRemoveRequest]) (*connect.Response[etcdserverpb.MemberRemoveResponse], error)
 	// MemberUpdate updates the member configuration.
-	MemberUpdate(context.Context, *connect_go.Request[etcdserverpb.MemberUpdateRequest]) (*connect_go.Response[etcdserverpb.MemberUpdateResponse], error)
+	MemberUpdate(context.Context, *connect.Request[etcdserverpb.MemberUpdateRequest]) (*connect.Response[etcdserverpb.MemberUpdateResponse], error)
 	// MemberList lists all the members in the cluster.
-	MemberList(context.Context, *connect_go.Request[etcdserverpb.MemberListRequest]) (*connect_go.Response[etcdserverpb.MemberListResponse], error)
+	MemberList(context.Context, *connect.Request[etcdserverpb.MemberListRequest]) (*connect.Response[etcdserverpb.MemberListResponse], error)
 	// MemberPromote promotes a member from raft learner (non-voting) to raft voting member.
-	MemberPromote(context.Context, *connect_go.Request[etcdserverpb.MemberPromoteRequest]) (*connect_go.Response[etcdserverpb.MemberPromoteResponse], error)
+	MemberPromote(context.Context, *connect.Request[etcdserverpb.MemberPromoteRequest]) (*connect.Response[etcdserverpb.MemberPromoteResponse], error)
 }
 
 // NewClusterHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -678,28 +678,28 @@ type ClusterHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewClusterHandler(svc ClusterHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	clusterMemberAddHandler := connect_go.NewUnaryHandler(
+func NewClusterHandler(svc ClusterHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	clusterMemberAddHandler := connect.NewUnaryHandler(
 		ClusterMemberAddProcedure,
 		svc.MemberAdd,
 		opts...,
 	)
-	clusterMemberRemoveHandler := connect_go.NewUnaryHandler(
+	clusterMemberRemoveHandler := connect.NewUnaryHandler(
 		ClusterMemberRemoveProcedure,
 		svc.MemberRemove,
 		opts...,
 	)
-	clusterMemberUpdateHandler := connect_go.NewUnaryHandler(
+	clusterMemberUpdateHandler := connect.NewUnaryHandler(
 		ClusterMemberUpdateProcedure,
 		svc.MemberUpdate,
 		opts...,
 	)
-	clusterMemberListHandler := connect_go.NewUnaryHandler(
+	clusterMemberListHandler := connect.NewUnaryHandler(
 		ClusterMemberListProcedure,
 		svc.MemberList,
 		opts...,
 	)
-	clusterMemberPromoteHandler := connect_go.NewUnaryHandler(
+	clusterMemberPromoteHandler := connect.NewUnaryHandler(
 		ClusterMemberPromoteProcedure,
 		svc.MemberPromote,
 		opts...,
@@ -725,52 +725,52 @@ func NewClusterHandler(svc ClusterHandler, opts ...connect_go.HandlerOption) (st
 // UnimplementedClusterHandler returns CodeUnimplemented from all methods.
 type UnimplementedClusterHandler struct{}
 
-func (UnimplementedClusterHandler) MemberAdd(context.Context, *connect_go.Request[etcdserverpb.MemberAddRequest]) (*connect_go.Response[etcdserverpb.MemberAddResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberAdd is not implemented"))
+func (UnimplementedClusterHandler) MemberAdd(context.Context, *connect.Request[etcdserverpb.MemberAddRequest]) (*connect.Response[etcdserverpb.MemberAddResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberAdd is not implemented"))
 }
 
-func (UnimplementedClusterHandler) MemberRemove(context.Context, *connect_go.Request[etcdserverpb.MemberRemoveRequest]) (*connect_go.Response[etcdserverpb.MemberRemoveResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberRemove is not implemented"))
+func (UnimplementedClusterHandler) MemberRemove(context.Context, *connect.Request[etcdserverpb.MemberRemoveRequest]) (*connect.Response[etcdserverpb.MemberRemoveResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberRemove is not implemented"))
 }
 
-func (UnimplementedClusterHandler) MemberUpdate(context.Context, *connect_go.Request[etcdserverpb.MemberUpdateRequest]) (*connect_go.Response[etcdserverpb.MemberUpdateResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberUpdate is not implemented"))
+func (UnimplementedClusterHandler) MemberUpdate(context.Context, *connect.Request[etcdserverpb.MemberUpdateRequest]) (*connect.Response[etcdserverpb.MemberUpdateResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberUpdate is not implemented"))
 }
 
-func (UnimplementedClusterHandler) MemberList(context.Context, *connect_go.Request[etcdserverpb.MemberListRequest]) (*connect_go.Response[etcdserverpb.MemberListResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberList is not implemented"))
+func (UnimplementedClusterHandler) MemberList(context.Context, *connect.Request[etcdserverpb.MemberListRequest]) (*connect.Response[etcdserverpb.MemberListResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberList is not implemented"))
 }
 
-func (UnimplementedClusterHandler) MemberPromote(context.Context, *connect_go.Request[etcdserverpb.MemberPromoteRequest]) (*connect_go.Response[etcdserverpb.MemberPromoteResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberPromote is not implemented"))
+func (UnimplementedClusterHandler) MemberPromote(context.Context, *connect.Request[etcdserverpb.MemberPromoteRequest]) (*connect.Response[etcdserverpb.MemberPromoteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Cluster.MemberPromote is not implemented"))
 }
 
 // MaintenanceClient is a client for the etcdserverpb.Maintenance service.
 type MaintenanceClient interface {
 	// Alarm activates, deactivates, and queries alarms regarding cluster health.
-	Alarm(context.Context, *connect_go.Request[etcdserverpb.AlarmRequest]) (*connect_go.Response[etcdserverpb.AlarmResponse], error)
+	Alarm(context.Context, *connect.Request[etcdserverpb.AlarmRequest]) (*connect.Response[etcdserverpb.AlarmResponse], error)
 	// Status gets the status of the member.
-	Status(context.Context, *connect_go.Request[etcdserverpb.StatusRequest]) (*connect_go.Response[etcdserverpb.StatusResponse], error)
+	Status(context.Context, *connect.Request[etcdserverpb.StatusRequest]) (*connect.Response[etcdserverpb.StatusResponse], error)
 	// Defragment defragments a member's backend database to recover storage space.
-	Defragment(context.Context, *connect_go.Request[etcdserverpb.DefragmentRequest]) (*connect_go.Response[etcdserverpb.DefragmentResponse], error)
+	Defragment(context.Context, *connect.Request[etcdserverpb.DefragmentRequest]) (*connect.Response[etcdserverpb.DefragmentResponse], error)
 	// Hash computes the hash of whole backend keyspace,
 	// including key, lease, and other buckets in storage.
 	// This is designed for testing ONLY!
 	// Do not rely on this in production with ongoing transactions,
 	// since Hash operation does not hold MVCC locks.
 	// Use "HashKV" API instead for "key" bucket consistency checks.
-	Hash(context.Context, *connect_go.Request[etcdserverpb.HashRequest]) (*connect_go.Response[etcdserverpb.HashResponse], error)
+	Hash(context.Context, *connect.Request[etcdserverpb.HashRequest]) (*connect.Response[etcdserverpb.HashResponse], error)
 	// HashKV computes the hash of all MVCC keys up to a given revision.
 	// It only iterates "key" bucket in backend storage.
-	HashKV(context.Context, *connect_go.Request[etcdserverpb.HashKVRequest]) (*connect_go.Response[etcdserverpb.HashKVResponse], error)
+	HashKV(context.Context, *connect.Request[etcdserverpb.HashKVRequest]) (*connect.Response[etcdserverpb.HashKVResponse], error)
 	// Snapshot sends a snapshot of the entire backend from a member over a stream to a client.
-	Snapshot(context.Context, *connect_go.Request[etcdserverpb.SnapshotRequest]) (*connect_go.ServerStreamForClient[etcdserverpb.SnapshotResponse], error)
+	Snapshot(context.Context, *connect.Request[etcdserverpb.SnapshotRequest]) (*connect.ServerStreamForClient[etcdserverpb.SnapshotResponse], error)
 	// MoveLeader requests current leader node to transfer its leadership to transferee.
-	MoveLeader(context.Context, *connect_go.Request[etcdserverpb.MoveLeaderRequest]) (*connect_go.Response[etcdserverpb.MoveLeaderResponse], error)
+	MoveLeader(context.Context, *connect.Request[etcdserverpb.MoveLeaderRequest]) (*connect.Response[etcdserverpb.MoveLeaderResponse], error)
 	// Downgrade requests downgrades, verifies feasibility or cancels downgrade
 	// on the cluster version.
 	// Supported since etcd 3.5.
-	Downgrade(context.Context, *connect_go.Request[etcdserverpb.DowngradeRequest]) (*connect_go.Response[etcdserverpb.DowngradeResponse], error)
+	Downgrade(context.Context, *connect.Request[etcdserverpb.DowngradeRequest]) (*connect.Response[etcdserverpb.DowngradeResponse], error)
 }
 
 // NewMaintenanceClient constructs a client for the etcdserverpb.Maintenance service. By default, it
@@ -780,45 +780,45 @@ type MaintenanceClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewMaintenanceClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) MaintenanceClient {
+func NewMaintenanceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) MaintenanceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &maintenanceClient{
-		alarm: connect_go.NewClient[etcdserverpb.AlarmRequest, etcdserverpb.AlarmResponse](
+		alarm: connect.NewClient[etcdserverpb.AlarmRequest, etcdserverpb.AlarmResponse](
 			httpClient,
 			baseURL+MaintenanceAlarmProcedure,
 			opts...,
 		),
-		status: connect_go.NewClient[etcdserverpb.StatusRequest, etcdserverpb.StatusResponse](
+		status: connect.NewClient[etcdserverpb.StatusRequest, etcdserverpb.StatusResponse](
 			httpClient,
 			baseURL+MaintenanceStatusProcedure,
 			opts...,
 		),
-		defragment: connect_go.NewClient[etcdserverpb.DefragmentRequest, etcdserverpb.DefragmentResponse](
+		defragment: connect.NewClient[etcdserverpb.DefragmentRequest, etcdserverpb.DefragmentResponse](
 			httpClient,
 			baseURL+MaintenanceDefragmentProcedure,
 			opts...,
 		),
-		hash: connect_go.NewClient[etcdserverpb.HashRequest, etcdserverpb.HashResponse](
+		hash: connect.NewClient[etcdserverpb.HashRequest, etcdserverpb.HashResponse](
 			httpClient,
 			baseURL+MaintenanceHashProcedure,
 			opts...,
 		),
-		hashKV: connect_go.NewClient[etcdserverpb.HashKVRequest, etcdserverpb.HashKVResponse](
+		hashKV: connect.NewClient[etcdserverpb.HashKVRequest, etcdserverpb.HashKVResponse](
 			httpClient,
 			baseURL+MaintenanceHashKVProcedure,
 			opts...,
 		),
-		snapshot: connect_go.NewClient[etcdserverpb.SnapshotRequest, etcdserverpb.SnapshotResponse](
+		snapshot: connect.NewClient[etcdserverpb.SnapshotRequest, etcdserverpb.SnapshotResponse](
 			httpClient,
 			baseURL+MaintenanceSnapshotProcedure,
 			opts...,
 		),
-		moveLeader: connect_go.NewClient[etcdserverpb.MoveLeaderRequest, etcdserverpb.MoveLeaderResponse](
+		moveLeader: connect.NewClient[etcdserverpb.MoveLeaderRequest, etcdserverpb.MoveLeaderResponse](
 			httpClient,
 			baseURL+MaintenanceMoveLeaderProcedure,
 			opts...,
 		),
-		downgrade: connect_go.NewClient[etcdserverpb.DowngradeRequest, etcdserverpb.DowngradeResponse](
+		downgrade: connect.NewClient[etcdserverpb.DowngradeRequest, etcdserverpb.DowngradeResponse](
 			httpClient,
 			baseURL+MaintenanceDowngradeProcedure,
 			opts...,
@@ -828,82 +828,82 @@ func NewMaintenanceClient(httpClient connect_go.HTTPClient, baseURL string, opts
 
 // maintenanceClient implements MaintenanceClient.
 type maintenanceClient struct {
-	alarm      *connect_go.Client[etcdserverpb.AlarmRequest, etcdserverpb.AlarmResponse]
-	status     *connect_go.Client[etcdserverpb.StatusRequest, etcdserverpb.StatusResponse]
-	defragment *connect_go.Client[etcdserverpb.DefragmentRequest, etcdserverpb.DefragmentResponse]
-	hash       *connect_go.Client[etcdserverpb.HashRequest, etcdserverpb.HashResponse]
-	hashKV     *connect_go.Client[etcdserverpb.HashKVRequest, etcdserverpb.HashKVResponse]
-	snapshot   *connect_go.Client[etcdserverpb.SnapshotRequest, etcdserverpb.SnapshotResponse]
-	moveLeader *connect_go.Client[etcdserverpb.MoveLeaderRequest, etcdserverpb.MoveLeaderResponse]
-	downgrade  *connect_go.Client[etcdserverpb.DowngradeRequest, etcdserverpb.DowngradeResponse]
+	alarm      *connect.Client[etcdserverpb.AlarmRequest, etcdserverpb.AlarmResponse]
+	status     *connect.Client[etcdserverpb.StatusRequest, etcdserverpb.StatusResponse]
+	defragment *connect.Client[etcdserverpb.DefragmentRequest, etcdserverpb.DefragmentResponse]
+	hash       *connect.Client[etcdserverpb.HashRequest, etcdserverpb.HashResponse]
+	hashKV     *connect.Client[etcdserverpb.HashKVRequest, etcdserverpb.HashKVResponse]
+	snapshot   *connect.Client[etcdserverpb.SnapshotRequest, etcdserverpb.SnapshotResponse]
+	moveLeader *connect.Client[etcdserverpb.MoveLeaderRequest, etcdserverpb.MoveLeaderResponse]
+	downgrade  *connect.Client[etcdserverpb.DowngradeRequest, etcdserverpb.DowngradeResponse]
 }
 
 // Alarm calls etcdserverpb.Maintenance.Alarm.
-func (c *maintenanceClient) Alarm(ctx context.Context, req *connect_go.Request[etcdserverpb.AlarmRequest]) (*connect_go.Response[etcdserverpb.AlarmResponse], error) {
+func (c *maintenanceClient) Alarm(ctx context.Context, req *connect.Request[etcdserverpb.AlarmRequest]) (*connect.Response[etcdserverpb.AlarmResponse], error) {
 	return c.alarm.CallUnary(ctx, req)
 }
 
 // Status calls etcdserverpb.Maintenance.Status.
-func (c *maintenanceClient) Status(ctx context.Context, req *connect_go.Request[etcdserverpb.StatusRequest]) (*connect_go.Response[etcdserverpb.StatusResponse], error) {
+func (c *maintenanceClient) Status(ctx context.Context, req *connect.Request[etcdserverpb.StatusRequest]) (*connect.Response[etcdserverpb.StatusResponse], error) {
 	return c.status.CallUnary(ctx, req)
 }
 
 // Defragment calls etcdserverpb.Maintenance.Defragment.
-func (c *maintenanceClient) Defragment(ctx context.Context, req *connect_go.Request[etcdserverpb.DefragmentRequest]) (*connect_go.Response[etcdserverpb.DefragmentResponse], error) {
+func (c *maintenanceClient) Defragment(ctx context.Context, req *connect.Request[etcdserverpb.DefragmentRequest]) (*connect.Response[etcdserverpb.DefragmentResponse], error) {
 	return c.defragment.CallUnary(ctx, req)
 }
 
 // Hash calls etcdserverpb.Maintenance.Hash.
-func (c *maintenanceClient) Hash(ctx context.Context, req *connect_go.Request[etcdserverpb.HashRequest]) (*connect_go.Response[etcdserverpb.HashResponse], error) {
+func (c *maintenanceClient) Hash(ctx context.Context, req *connect.Request[etcdserverpb.HashRequest]) (*connect.Response[etcdserverpb.HashResponse], error) {
 	return c.hash.CallUnary(ctx, req)
 }
 
 // HashKV calls etcdserverpb.Maintenance.HashKV.
-func (c *maintenanceClient) HashKV(ctx context.Context, req *connect_go.Request[etcdserverpb.HashKVRequest]) (*connect_go.Response[etcdserverpb.HashKVResponse], error) {
+func (c *maintenanceClient) HashKV(ctx context.Context, req *connect.Request[etcdserverpb.HashKVRequest]) (*connect.Response[etcdserverpb.HashKVResponse], error) {
 	return c.hashKV.CallUnary(ctx, req)
 }
 
 // Snapshot calls etcdserverpb.Maintenance.Snapshot.
-func (c *maintenanceClient) Snapshot(ctx context.Context, req *connect_go.Request[etcdserverpb.SnapshotRequest]) (*connect_go.ServerStreamForClient[etcdserverpb.SnapshotResponse], error) {
+func (c *maintenanceClient) Snapshot(ctx context.Context, req *connect.Request[etcdserverpb.SnapshotRequest]) (*connect.ServerStreamForClient[etcdserverpb.SnapshotResponse], error) {
 	return c.snapshot.CallServerStream(ctx, req)
 }
 
 // MoveLeader calls etcdserverpb.Maintenance.MoveLeader.
-func (c *maintenanceClient) MoveLeader(ctx context.Context, req *connect_go.Request[etcdserverpb.MoveLeaderRequest]) (*connect_go.Response[etcdserverpb.MoveLeaderResponse], error) {
+func (c *maintenanceClient) MoveLeader(ctx context.Context, req *connect.Request[etcdserverpb.MoveLeaderRequest]) (*connect.Response[etcdserverpb.MoveLeaderResponse], error) {
 	return c.moveLeader.CallUnary(ctx, req)
 }
 
 // Downgrade calls etcdserverpb.Maintenance.Downgrade.
-func (c *maintenanceClient) Downgrade(ctx context.Context, req *connect_go.Request[etcdserverpb.DowngradeRequest]) (*connect_go.Response[etcdserverpb.DowngradeResponse], error) {
+func (c *maintenanceClient) Downgrade(ctx context.Context, req *connect.Request[etcdserverpb.DowngradeRequest]) (*connect.Response[etcdserverpb.DowngradeResponse], error) {
 	return c.downgrade.CallUnary(ctx, req)
 }
 
 // MaintenanceHandler is an implementation of the etcdserverpb.Maintenance service.
 type MaintenanceHandler interface {
 	// Alarm activates, deactivates, and queries alarms regarding cluster health.
-	Alarm(context.Context, *connect_go.Request[etcdserverpb.AlarmRequest]) (*connect_go.Response[etcdserverpb.AlarmResponse], error)
+	Alarm(context.Context, *connect.Request[etcdserverpb.AlarmRequest]) (*connect.Response[etcdserverpb.AlarmResponse], error)
 	// Status gets the status of the member.
-	Status(context.Context, *connect_go.Request[etcdserverpb.StatusRequest]) (*connect_go.Response[etcdserverpb.StatusResponse], error)
+	Status(context.Context, *connect.Request[etcdserverpb.StatusRequest]) (*connect.Response[etcdserverpb.StatusResponse], error)
 	// Defragment defragments a member's backend database to recover storage space.
-	Defragment(context.Context, *connect_go.Request[etcdserverpb.DefragmentRequest]) (*connect_go.Response[etcdserverpb.DefragmentResponse], error)
+	Defragment(context.Context, *connect.Request[etcdserverpb.DefragmentRequest]) (*connect.Response[etcdserverpb.DefragmentResponse], error)
 	// Hash computes the hash of whole backend keyspace,
 	// including key, lease, and other buckets in storage.
 	// This is designed for testing ONLY!
 	// Do not rely on this in production with ongoing transactions,
 	// since Hash operation does not hold MVCC locks.
 	// Use "HashKV" API instead for "key" bucket consistency checks.
-	Hash(context.Context, *connect_go.Request[etcdserverpb.HashRequest]) (*connect_go.Response[etcdserverpb.HashResponse], error)
+	Hash(context.Context, *connect.Request[etcdserverpb.HashRequest]) (*connect.Response[etcdserverpb.HashResponse], error)
 	// HashKV computes the hash of all MVCC keys up to a given revision.
 	// It only iterates "key" bucket in backend storage.
-	HashKV(context.Context, *connect_go.Request[etcdserverpb.HashKVRequest]) (*connect_go.Response[etcdserverpb.HashKVResponse], error)
+	HashKV(context.Context, *connect.Request[etcdserverpb.HashKVRequest]) (*connect.Response[etcdserverpb.HashKVResponse], error)
 	// Snapshot sends a snapshot of the entire backend from a member over a stream to a client.
-	Snapshot(context.Context, *connect_go.Request[etcdserverpb.SnapshotRequest], *connect_go.ServerStream[etcdserverpb.SnapshotResponse]) error
+	Snapshot(context.Context, *connect.Request[etcdserverpb.SnapshotRequest], *connect.ServerStream[etcdserverpb.SnapshotResponse]) error
 	// MoveLeader requests current leader node to transfer its leadership to transferee.
-	MoveLeader(context.Context, *connect_go.Request[etcdserverpb.MoveLeaderRequest]) (*connect_go.Response[etcdserverpb.MoveLeaderResponse], error)
+	MoveLeader(context.Context, *connect.Request[etcdserverpb.MoveLeaderRequest]) (*connect.Response[etcdserverpb.MoveLeaderResponse], error)
 	// Downgrade requests downgrades, verifies feasibility or cancels downgrade
 	// on the cluster version.
 	// Supported since etcd 3.5.
-	Downgrade(context.Context, *connect_go.Request[etcdserverpb.DowngradeRequest]) (*connect_go.Response[etcdserverpb.DowngradeResponse], error)
+	Downgrade(context.Context, *connect.Request[etcdserverpb.DowngradeRequest]) (*connect.Response[etcdserverpb.DowngradeResponse], error)
 }
 
 // NewMaintenanceHandler builds an HTTP handler from the service implementation. It returns the path
@@ -911,43 +911,43 @@ type MaintenanceHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewMaintenanceHandler(svc MaintenanceHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	maintenanceAlarmHandler := connect_go.NewUnaryHandler(
+func NewMaintenanceHandler(svc MaintenanceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	maintenanceAlarmHandler := connect.NewUnaryHandler(
 		MaintenanceAlarmProcedure,
 		svc.Alarm,
 		opts...,
 	)
-	maintenanceStatusHandler := connect_go.NewUnaryHandler(
+	maintenanceStatusHandler := connect.NewUnaryHandler(
 		MaintenanceStatusProcedure,
 		svc.Status,
 		opts...,
 	)
-	maintenanceDefragmentHandler := connect_go.NewUnaryHandler(
+	maintenanceDefragmentHandler := connect.NewUnaryHandler(
 		MaintenanceDefragmentProcedure,
 		svc.Defragment,
 		opts...,
 	)
-	maintenanceHashHandler := connect_go.NewUnaryHandler(
+	maintenanceHashHandler := connect.NewUnaryHandler(
 		MaintenanceHashProcedure,
 		svc.Hash,
 		opts...,
 	)
-	maintenanceHashKVHandler := connect_go.NewUnaryHandler(
+	maintenanceHashKVHandler := connect.NewUnaryHandler(
 		MaintenanceHashKVProcedure,
 		svc.HashKV,
 		opts...,
 	)
-	maintenanceSnapshotHandler := connect_go.NewServerStreamHandler(
+	maintenanceSnapshotHandler := connect.NewServerStreamHandler(
 		MaintenanceSnapshotProcedure,
 		svc.Snapshot,
 		opts...,
 	)
-	maintenanceMoveLeaderHandler := connect_go.NewUnaryHandler(
+	maintenanceMoveLeaderHandler := connect.NewUnaryHandler(
 		MaintenanceMoveLeaderProcedure,
 		svc.MoveLeader,
 		opts...,
 	)
-	maintenanceDowngradeHandler := connect_go.NewUnaryHandler(
+	maintenanceDowngradeHandler := connect.NewUnaryHandler(
 		MaintenanceDowngradeProcedure,
 		svc.Downgrade,
 		opts...,
@@ -979,74 +979,74 @@ func NewMaintenanceHandler(svc MaintenanceHandler, opts ...connect_go.HandlerOpt
 // UnimplementedMaintenanceHandler returns CodeUnimplemented from all methods.
 type UnimplementedMaintenanceHandler struct{}
 
-func (UnimplementedMaintenanceHandler) Alarm(context.Context, *connect_go.Request[etcdserverpb.AlarmRequest]) (*connect_go.Response[etcdserverpb.AlarmResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Alarm is not implemented"))
+func (UnimplementedMaintenanceHandler) Alarm(context.Context, *connect.Request[etcdserverpb.AlarmRequest]) (*connect.Response[etcdserverpb.AlarmResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Alarm is not implemented"))
 }
 
-func (UnimplementedMaintenanceHandler) Status(context.Context, *connect_go.Request[etcdserverpb.StatusRequest]) (*connect_go.Response[etcdserverpb.StatusResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Status is not implemented"))
+func (UnimplementedMaintenanceHandler) Status(context.Context, *connect.Request[etcdserverpb.StatusRequest]) (*connect.Response[etcdserverpb.StatusResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Status is not implemented"))
 }
 
-func (UnimplementedMaintenanceHandler) Defragment(context.Context, *connect_go.Request[etcdserverpb.DefragmentRequest]) (*connect_go.Response[etcdserverpb.DefragmentResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Defragment is not implemented"))
+func (UnimplementedMaintenanceHandler) Defragment(context.Context, *connect.Request[etcdserverpb.DefragmentRequest]) (*connect.Response[etcdserverpb.DefragmentResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Defragment is not implemented"))
 }
 
-func (UnimplementedMaintenanceHandler) Hash(context.Context, *connect_go.Request[etcdserverpb.HashRequest]) (*connect_go.Response[etcdserverpb.HashResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Hash is not implemented"))
+func (UnimplementedMaintenanceHandler) Hash(context.Context, *connect.Request[etcdserverpb.HashRequest]) (*connect.Response[etcdserverpb.HashResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Hash is not implemented"))
 }
 
-func (UnimplementedMaintenanceHandler) HashKV(context.Context, *connect_go.Request[etcdserverpb.HashKVRequest]) (*connect_go.Response[etcdserverpb.HashKVResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.HashKV is not implemented"))
+func (UnimplementedMaintenanceHandler) HashKV(context.Context, *connect.Request[etcdserverpb.HashKVRequest]) (*connect.Response[etcdserverpb.HashKVResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.HashKV is not implemented"))
 }
 
-func (UnimplementedMaintenanceHandler) Snapshot(context.Context, *connect_go.Request[etcdserverpb.SnapshotRequest], *connect_go.ServerStream[etcdserverpb.SnapshotResponse]) error {
-	return connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Snapshot is not implemented"))
+func (UnimplementedMaintenanceHandler) Snapshot(context.Context, *connect.Request[etcdserverpb.SnapshotRequest], *connect.ServerStream[etcdserverpb.SnapshotResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Snapshot is not implemented"))
 }
 
-func (UnimplementedMaintenanceHandler) MoveLeader(context.Context, *connect_go.Request[etcdserverpb.MoveLeaderRequest]) (*connect_go.Response[etcdserverpb.MoveLeaderResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.MoveLeader is not implemented"))
+func (UnimplementedMaintenanceHandler) MoveLeader(context.Context, *connect.Request[etcdserverpb.MoveLeaderRequest]) (*connect.Response[etcdserverpb.MoveLeaderResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.MoveLeader is not implemented"))
 }
 
-func (UnimplementedMaintenanceHandler) Downgrade(context.Context, *connect_go.Request[etcdserverpb.DowngradeRequest]) (*connect_go.Response[etcdserverpb.DowngradeResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Downgrade is not implemented"))
+func (UnimplementedMaintenanceHandler) Downgrade(context.Context, *connect.Request[etcdserverpb.DowngradeRequest]) (*connect.Response[etcdserverpb.DowngradeResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Maintenance.Downgrade is not implemented"))
 }
 
 // AuthClient is a client for the etcdserverpb.Auth service.
 type AuthClient interface {
 	// AuthEnable enables authentication.
-	AuthEnable(context.Context, *connect_go.Request[etcdserverpb.AuthEnableRequest]) (*connect_go.Response[etcdserverpb.AuthEnableResponse], error)
+	AuthEnable(context.Context, *connect.Request[etcdserverpb.AuthEnableRequest]) (*connect.Response[etcdserverpb.AuthEnableResponse], error)
 	// AuthDisable disables authentication.
-	AuthDisable(context.Context, *connect_go.Request[etcdserverpb.AuthDisableRequest]) (*connect_go.Response[etcdserverpb.AuthDisableResponse], error)
+	AuthDisable(context.Context, *connect.Request[etcdserverpb.AuthDisableRequest]) (*connect.Response[etcdserverpb.AuthDisableResponse], error)
 	// AuthStatus displays authentication status.
-	AuthStatus(context.Context, *connect_go.Request[etcdserverpb.AuthStatusRequest]) (*connect_go.Response[etcdserverpb.AuthStatusResponse], error)
+	AuthStatus(context.Context, *connect.Request[etcdserverpb.AuthStatusRequest]) (*connect.Response[etcdserverpb.AuthStatusResponse], error)
 	// Authenticate processes an authenticate request.
-	Authenticate(context.Context, *connect_go.Request[etcdserverpb.AuthenticateRequest]) (*connect_go.Response[etcdserverpb.AuthenticateResponse], error)
+	Authenticate(context.Context, *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error)
 	// UserAdd adds a new user. User name cannot be empty.
-	UserAdd(context.Context, *connect_go.Request[etcdserverpb.AuthUserAddRequest]) (*connect_go.Response[etcdserverpb.AuthUserAddResponse], error)
+	UserAdd(context.Context, *connect.Request[etcdserverpb.AuthUserAddRequest]) (*connect.Response[etcdserverpb.AuthUserAddResponse], error)
 	// UserGet gets detailed user information.
-	UserGet(context.Context, *connect_go.Request[etcdserverpb.AuthUserGetRequest]) (*connect_go.Response[etcdserverpb.AuthUserGetResponse], error)
+	UserGet(context.Context, *connect.Request[etcdserverpb.AuthUserGetRequest]) (*connect.Response[etcdserverpb.AuthUserGetResponse], error)
 	// UserList gets a list of all users.
-	UserList(context.Context, *connect_go.Request[etcdserverpb.AuthUserListRequest]) (*connect_go.Response[etcdserverpb.AuthUserListResponse], error)
+	UserList(context.Context, *connect.Request[etcdserverpb.AuthUserListRequest]) (*connect.Response[etcdserverpb.AuthUserListResponse], error)
 	// UserDelete deletes a specified user.
-	UserDelete(context.Context, *connect_go.Request[etcdserverpb.AuthUserDeleteRequest]) (*connect_go.Response[etcdserverpb.AuthUserDeleteResponse], error)
+	UserDelete(context.Context, *connect.Request[etcdserverpb.AuthUserDeleteRequest]) (*connect.Response[etcdserverpb.AuthUserDeleteResponse], error)
 	// UserChangePassword changes the password of a specified user.
-	UserChangePassword(context.Context, *connect_go.Request[etcdserverpb.AuthUserChangePasswordRequest]) (*connect_go.Response[etcdserverpb.AuthUserChangePasswordResponse], error)
+	UserChangePassword(context.Context, *connect.Request[etcdserverpb.AuthUserChangePasswordRequest]) (*connect.Response[etcdserverpb.AuthUserChangePasswordResponse], error)
 	// UserGrant grants a role to a specified user.
-	UserGrantRole(context.Context, *connect_go.Request[etcdserverpb.AuthUserGrantRoleRequest]) (*connect_go.Response[etcdserverpb.AuthUserGrantRoleResponse], error)
+	UserGrantRole(context.Context, *connect.Request[etcdserverpb.AuthUserGrantRoleRequest]) (*connect.Response[etcdserverpb.AuthUserGrantRoleResponse], error)
 	// UserRevokeRole revokes a role of specified user.
-	UserRevokeRole(context.Context, *connect_go.Request[etcdserverpb.AuthUserRevokeRoleRequest]) (*connect_go.Response[etcdserverpb.AuthUserRevokeRoleResponse], error)
+	UserRevokeRole(context.Context, *connect.Request[etcdserverpb.AuthUserRevokeRoleRequest]) (*connect.Response[etcdserverpb.AuthUserRevokeRoleResponse], error)
 	// RoleAdd adds a new role. Role name cannot be empty.
-	RoleAdd(context.Context, *connect_go.Request[etcdserverpb.AuthRoleAddRequest]) (*connect_go.Response[etcdserverpb.AuthRoleAddResponse], error)
+	RoleAdd(context.Context, *connect.Request[etcdserverpb.AuthRoleAddRequest]) (*connect.Response[etcdserverpb.AuthRoleAddResponse], error)
 	// RoleGet gets detailed role information.
-	RoleGet(context.Context, *connect_go.Request[etcdserverpb.AuthRoleGetRequest]) (*connect_go.Response[etcdserverpb.AuthRoleGetResponse], error)
+	RoleGet(context.Context, *connect.Request[etcdserverpb.AuthRoleGetRequest]) (*connect.Response[etcdserverpb.AuthRoleGetResponse], error)
 	// RoleList gets lists of all roles.
-	RoleList(context.Context, *connect_go.Request[etcdserverpb.AuthRoleListRequest]) (*connect_go.Response[etcdserverpb.AuthRoleListResponse], error)
+	RoleList(context.Context, *connect.Request[etcdserverpb.AuthRoleListRequest]) (*connect.Response[etcdserverpb.AuthRoleListResponse], error)
 	// RoleDelete deletes a specified role.
-	RoleDelete(context.Context, *connect_go.Request[etcdserverpb.AuthRoleDeleteRequest]) (*connect_go.Response[etcdserverpb.AuthRoleDeleteResponse], error)
+	RoleDelete(context.Context, *connect.Request[etcdserverpb.AuthRoleDeleteRequest]) (*connect.Response[etcdserverpb.AuthRoleDeleteResponse], error)
 	// RoleGrantPermission grants a permission of a specified key or range to a specified role.
-	RoleGrantPermission(context.Context, *connect_go.Request[etcdserverpb.AuthRoleGrantPermissionRequest]) (*connect_go.Response[etcdserverpb.AuthRoleGrantPermissionResponse], error)
+	RoleGrantPermission(context.Context, *connect.Request[etcdserverpb.AuthRoleGrantPermissionRequest]) (*connect.Response[etcdserverpb.AuthRoleGrantPermissionResponse], error)
 	// RoleRevokePermission revokes a key or range permission of a specified role.
-	RoleRevokePermission(context.Context, *connect_go.Request[etcdserverpb.AuthRoleRevokePermissionRequest]) (*connect_go.Response[etcdserverpb.AuthRoleRevokePermissionResponse], error)
+	RoleRevokePermission(context.Context, *connect.Request[etcdserverpb.AuthRoleRevokePermissionRequest]) (*connect.Response[etcdserverpb.AuthRoleRevokePermissionResponse], error)
 }
 
 // NewAuthClient constructs a client for the etcdserverpb.Auth service. By default, it uses the
@@ -1056,90 +1056,90 @@ type AuthClient interface {
 //
 // The URL supplied here should be the base URL for the Connect or gRPC server (for example,
 // http://api.acme.com or https://acme.com/grpc).
-func NewAuthClient(httpClient connect_go.HTTPClient, baseURL string, opts ...connect_go.ClientOption) AuthClient {
+func NewAuthClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AuthClient {
 	baseURL = strings.TrimRight(baseURL, "/")
 	return &authClient{
-		authEnable: connect_go.NewClient[etcdserverpb.AuthEnableRequest, etcdserverpb.AuthEnableResponse](
+		authEnable: connect.NewClient[etcdserverpb.AuthEnableRequest, etcdserverpb.AuthEnableResponse](
 			httpClient,
 			baseURL+AuthAuthEnableProcedure,
 			opts...,
 		),
-		authDisable: connect_go.NewClient[etcdserverpb.AuthDisableRequest, etcdserverpb.AuthDisableResponse](
+		authDisable: connect.NewClient[etcdserverpb.AuthDisableRequest, etcdserverpb.AuthDisableResponse](
 			httpClient,
 			baseURL+AuthAuthDisableProcedure,
 			opts...,
 		),
-		authStatus: connect_go.NewClient[etcdserverpb.AuthStatusRequest, etcdserverpb.AuthStatusResponse](
+		authStatus: connect.NewClient[etcdserverpb.AuthStatusRequest, etcdserverpb.AuthStatusResponse](
 			httpClient,
 			baseURL+AuthAuthStatusProcedure,
 			opts...,
 		),
-		authenticate: connect_go.NewClient[etcdserverpb.AuthenticateRequest, etcdserverpb.AuthenticateResponse](
+		authenticate: connect.NewClient[etcdserverpb.AuthenticateRequest, etcdserverpb.AuthenticateResponse](
 			httpClient,
 			baseURL+AuthAuthenticateProcedure,
 			opts...,
 		),
-		userAdd: connect_go.NewClient[etcdserverpb.AuthUserAddRequest, etcdserverpb.AuthUserAddResponse](
+		userAdd: connect.NewClient[etcdserverpb.AuthUserAddRequest, etcdserverpb.AuthUserAddResponse](
 			httpClient,
 			baseURL+AuthUserAddProcedure,
 			opts...,
 		),
-		userGet: connect_go.NewClient[etcdserverpb.AuthUserGetRequest, etcdserverpb.AuthUserGetResponse](
+		userGet: connect.NewClient[etcdserverpb.AuthUserGetRequest, etcdserverpb.AuthUserGetResponse](
 			httpClient,
 			baseURL+AuthUserGetProcedure,
 			opts...,
 		),
-		userList: connect_go.NewClient[etcdserverpb.AuthUserListRequest, etcdserverpb.AuthUserListResponse](
+		userList: connect.NewClient[etcdserverpb.AuthUserListRequest, etcdserverpb.AuthUserListResponse](
 			httpClient,
 			baseURL+AuthUserListProcedure,
 			opts...,
 		),
-		userDelete: connect_go.NewClient[etcdserverpb.AuthUserDeleteRequest, etcdserverpb.AuthUserDeleteResponse](
+		userDelete: connect.NewClient[etcdserverpb.AuthUserDeleteRequest, etcdserverpb.AuthUserDeleteResponse](
 			httpClient,
 			baseURL+AuthUserDeleteProcedure,
 			opts...,
 		),
-		userChangePassword: connect_go.NewClient[etcdserverpb.AuthUserChangePasswordRequest, etcdserverpb.AuthUserChangePasswordResponse](
+		userChangePassword: connect.NewClient[etcdserverpb.AuthUserChangePasswordRequest, etcdserverpb.AuthUserChangePasswordResponse](
 			httpClient,
 			baseURL+AuthUserChangePasswordProcedure,
 			opts...,
 		),
-		userGrantRole: connect_go.NewClient[etcdserverpb.AuthUserGrantRoleRequest, etcdserverpb.AuthUserGrantRoleResponse](
+		userGrantRole: connect.NewClient[etcdserverpb.AuthUserGrantRoleRequest, etcdserverpb.AuthUserGrantRoleResponse](
 			httpClient,
 			baseURL+AuthUserGrantRoleProcedure,
 			opts...,
 		),
-		userRevokeRole: connect_go.NewClient[etcdserverpb.AuthUserRevokeRoleRequest, etcdserverpb.AuthUserRevokeRoleResponse](
+		userRevokeRole: connect.NewClient[etcdserverpb.AuthUserRevokeRoleRequest, etcdserverpb.AuthUserRevokeRoleResponse](
 			httpClient,
 			baseURL+AuthUserRevokeRoleProcedure,
 			opts...,
 		),
-		roleAdd: connect_go.NewClient[etcdserverpb.AuthRoleAddRequest, etcdserverpb.AuthRoleAddResponse](
+		roleAdd: connect.NewClient[etcdserverpb.AuthRoleAddRequest, etcdserverpb.AuthRoleAddResponse](
 			httpClient,
 			baseURL+AuthRoleAddProcedure,
 			opts...,
 		),
-		roleGet: connect_go.NewClient[etcdserverpb.AuthRoleGetRequest, etcdserverpb.AuthRoleGetResponse](
+		roleGet: connect.NewClient[etcdserverpb.AuthRoleGetRequest, etcdserverpb.AuthRoleGetResponse](
 			httpClient,
 			baseURL+AuthRoleGetProcedure,
 			opts...,
 		),
-		roleList: connect_go.NewClient[etcdserverpb.AuthRoleListRequest, etcdserverpb.AuthRoleListResponse](
+		roleList: connect.NewClient[etcdserverpb.AuthRoleListRequest, etcdserverpb.AuthRoleListResponse](
 			httpClient,
 			baseURL+AuthRoleListProcedure,
 			opts...,
 		),
-		roleDelete: connect_go.NewClient[etcdserverpb.AuthRoleDeleteRequest, etcdserverpb.AuthRoleDeleteResponse](
+		roleDelete: connect.NewClient[etcdserverpb.AuthRoleDeleteRequest, etcdserverpb.AuthRoleDeleteResponse](
 			httpClient,
 			baseURL+AuthRoleDeleteProcedure,
 			opts...,
 		),
-		roleGrantPermission: connect_go.NewClient[etcdserverpb.AuthRoleGrantPermissionRequest, etcdserverpb.AuthRoleGrantPermissionResponse](
+		roleGrantPermission: connect.NewClient[etcdserverpb.AuthRoleGrantPermissionRequest, etcdserverpb.AuthRoleGrantPermissionResponse](
 			httpClient,
 			baseURL+AuthRoleGrantPermissionProcedure,
 			opts...,
 		),
-		roleRevokePermission: connect_go.NewClient[etcdserverpb.AuthRoleRevokePermissionRequest, etcdserverpb.AuthRoleRevokePermissionResponse](
+		roleRevokePermission: connect.NewClient[etcdserverpb.AuthRoleRevokePermissionRequest, etcdserverpb.AuthRoleRevokePermissionResponse](
 			httpClient,
 			baseURL+AuthRoleRevokePermissionProcedure,
 			opts...,
@@ -1149,146 +1149,146 @@ func NewAuthClient(httpClient connect_go.HTTPClient, baseURL string, opts ...con
 
 // authClient implements AuthClient.
 type authClient struct {
-	authEnable           *connect_go.Client[etcdserverpb.AuthEnableRequest, etcdserverpb.AuthEnableResponse]
-	authDisable          *connect_go.Client[etcdserverpb.AuthDisableRequest, etcdserverpb.AuthDisableResponse]
-	authStatus           *connect_go.Client[etcdserverpb.AuthStatusRequest, etcdserverpb.AuthStatusResponse]
-	authenticate         *connect_go.Client[etcdserverpb.AuthenticateRequest, etcdserverpb.AuthenticateResponse]
-	userAdd              *connect_go.Client[etcdserverpb.AuthUserAddRequest, etcdserverpb.AuthUserAddResponse]
-	userGet              *connect_go.Client[etcdserverpb.AuthUserGetRequest, etcdserverpb.AuthUserGetResponse]
-	userList             *connect_go.Client[etcdserverpb.AuthUserListRequest, etcdserverpb.AuthUserListResponse]
-	userDelete           *connect_go.Client[etcdserverpb.AuthUserDeleteRequest, etcdserverpb.AuthUserDeleteResponse]
-	userChangePassword   *connect_go.Client[etcdserverpb.AuthUserChangePasswordRequest, etcdserverpb.AuthUserChangePasswordResponse]
-	userGrantRole        *connect_go.Client[etcdserverpb.AuthUserGrantRoleRequest, etcdserverpb.AuthUserGrantRoleResponse]
-	userRevokeRole       *connect_go.Client[etcdserverpb.AuthUserRevokeRoleRequest, etcdserverpb.AuthUserRevokeRoleResponse]
-	roleAdd              *connect_go.Client[etcdserverpb.AuthRoleAddRequest, etcdserverpb.AuthRoleAddResponse]
-	roleGet              *connect_go.Client[etcdserverpb.AuthRoleGetRequest, etcdserverpb.AuthRoleGetResponse]
-	roleList             *connect_go.Client[etcdserverpb.AuthRoleListRequest, etcdserverpb.AuthRoleListResponse]
-	roleDelete           *connect_go.Client[etcdserverpb.AuthRoleDeleteRequest, etcdserverpb.AuthRoleDeleteResponse]
-	roleGrantPermission  *connect_go.Client[etcdserverpb.AuthRoleGrantPermissionRequest, etcdserverpb.AuthRoleGrantPermissionResponse]
-	roleRevokePermission *connect_go.Client[etcdserverpb.AuthRoleRevokePermissionRequest, etcdserverpb.AuthRoleRevokePermissionResponse]
+	authEnable           *connect.Client[etcdserverpb.AuthEnableRequest, etcdserverpb.AuthEnableResponse]
+	authDisable          *connect.Client[etcdserverpb.AuthDisableRequest, etcdserverpb.AuthDisableResponse]
+	authStatus           *connect.Client[etcdserverpb.AuthStatusRequest, etcdserverpb.AuthStatusResponse]
+	authenticate         *connect.Client[etcdserverpb.AuthenticateRequest, etcdserverpb.AuthenticateResponse]
+	userAdd              *connect.Client[etcdserverpb.AuthUserAddRequest, etcdserverpb.AuthUserAddResponse]
+	userGet              *connect.Client[etcdserverpb.AuthUserGetRequest, etcdserverpb.AuthUserGetResponse]
+	userList             *connect.Client[etcdserverpb.AuthUserListRequest, etcdserverpb.AuthUserListResponse]
+	userDelete           *connect.Client[etcdserverpb.AuthUserDeleteRequest, etcdserverpb.AuthUserDeleteResponse]
+	userChangePassword   *connect.Client[etcdserverpb.AuthUserChangePasswordRequest, etcdserverpb.AuthUserChangePasswordResponse]
+	userGrantRole        *connect.Client[etcdserverpb.AuthUserGrantRoleRequest, etcdserverpb.AuthUserGrantRoleResponse]
+	userRevokeRole       *connect.Client[etcdserverpb.AuthUserRevokeRoleRequest, etcdserverpb.AuthUserRevokeRoleResponse]
+	roleAdd              *connect.Client[etcdserverpb.AuthRoleAddRequest, etcdserverpb.AuthRoleAddResponse]
+	roleGet              *connect.Client[etcdserverpb.AuthRoleGetRequest, etcdserverpb.AuthRoleGetResponse]
+	roleList             *connect.Client[etcdserverpb.AuthRoleListRequest, etcdserverpb.AuthRoleListResponse]
+	roleDelete           *connect.Client[etcdserverpb.AuthRoleDeleteRequest, etcdserverpb.AuthRoleDeleteResponse]
+	roleGrantPermission  *connect.Client[etcdserverpb.AuthRoleGrantPermissionRequest, etcdserverpb.AuthRoleGrantPermissionResponse]
+	roleRevokePermission *connect.Client[etcdserverpb.AuthRoleRevokePermissionRequest, etcdserverpb.AuthRoleRevokePermissionResponse]
 }
 
 // AuthEnable calls etcdserverpb.Auth.AuthEnable.
-func (c *authClient) AuthEnable(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthEnableRequest]) (*connect_go.Response[etcdserverpb.AuthEnableResponse], error) {
+func (c *authClient) AuthEnable(ctx context.Context, req *connect.Request[etcdserverpb.AuthEnableRequest]) (*connect.Response[etcdserverpb.AuthEnableResponse], error) {
 	return c.authEnable.CallUnary(ctx, req)
 }
 
 // AuthDisable calls etcdserverpb.Auth.AuthDisable.
-func (c *authClient) AuthDisable(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthDisableRequest]) (*connect_go.Response[etcdserverpb.AuthDisableResponse], error) {
+func (c *authClient) AuthDisable(ctx context.Context, req *connect.Request[etcdserverpb.AuthDisableRequest]) (*connect.Response[etcdserverpb.AuthDisableResponse], error) {
 	return c.authDisable.CallUnary(ctx, req)
 }
 
 // AuthStatus calls etcdserverpb.Auth.AuthStatus.
-func (c *authClient) AuthStatus(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthStatusRequest]) (*connect_go.Response[etcdserverpb.AuthStatusResponse], error) {
+func (c *authClient) AuthStatus(ctx context.Context, req *connect.Request[etcdserverpb.AuthStatusRequest]) (*connect.Response[etcdserverpb.AuthStatusResponse], error) {
 	return c.authStatus.CallUnary(ctx, req)
 }
 
 // Authenticate calls etcdserverpb.Auth.Authenticate.
-func (c *authClient) Authenticate(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthenticateRequest]) (*connect_go.Response[etcdserverpb.AuthenticateResponse], error) {
+func (c *authClient) Authenticate(ctx context.Context, req *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error) {
 	return c.authenticate.CallUnary(ctx, req)
 }
 
 // UserAdd calls etcdserverpb.Auth.UserAdd.
-func (c *authClient) UserAdd(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthUserAddRequest]) (*connect_go.Response[etcdserverpb.AuthUserAddResponse], error) {
+func (c *authClient) UserAdd(ctx context.Context, req *connect.Request[etcdserverpb.AuthUserAddRequest]) (*connect.Response[etcdserverpb.AuthUserAddResponse], error) {
 	return c.userAdd.CallUnary(ctx, req)
 }
 
 // UserGet calls etcdserverpb.Auth.UserGet.
-func (c *authClient) UserGet(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthUserGetRequest]) (*connect_go.Response[etcdserverpb.AuthUserGetResponse], error) {
+func (c *authClient) UserGet(ctx context.Context, req *connect.Request[etcdserverpb.AuthUserGetRequest]) (*connect.Response[etcdserverpb.AuthUserGetResponse], error) {
 	return c.userGet.CallUnary(ctx, req)
 }
 
 // UserList calls etcdserverpb.Auth.UserList.
-func (c *authClient) UserList(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthUserListRequest]) (*connect_go.Response[etcdserverpb.AuthUserListResponse], error) {
+func (c *authClient) UserList(ctx context.Context, req *connect.Request[etcdserverpb.AuthUserListRequest]) (*connect.Response[etcdserverpb.AuthUserListResponse], error) {
 	return c.userList.CallUnary(ctx, req)
 }
 
 // UserDelete calls etcdserverpb.Auth.UserDelete.
-func (c *authClient) UserDelete(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthUserDeleteRequest]) (*connect_go.Response[etcdserverpb.AuthUserDeleteResponse], error) {
+func (c *authClient) UserDelete(ctx context.Context, req *connect.Request[etcdserverpb.AuthUserDeleteRequest]) (*connect.Response[etcdserverpb.AuthUserDeleteResponse], error) {
 	return c.userDelete.CallUnary(ctx, req)
 }
 
 // UserChangePassword calls etcdserverpb.Auth.UserChangePassword.
-func (c *authClient) UserChangePassword(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthUserChangePasswordRequest]) (*connect_go.Response[etcdserverpb.AuthUserChangePasswordResponse], error) {
+func (c *authClient) UserChangePassword(ctx context.Context, req *connect.Request[etcdserverpb.AuthUserChangePasswordRequest]) (*connect.Response[etcdserverpb.AuthUserChangePasswordResponse], error) {
 	return c.userChangePassword.CallUnary(ctx, req)
 }
 
 // UserGrantRole calls etcdserverpb.Auth.UserGrantRole.
-func (c *authClient) UserGrantRole(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthUserGrantRoleRequest]) (*connect_go.Response[etcdserverpb.AuthUserGrantRoleResponse], error) {
+func (c *authClient) UserGrantRole(ctx context.Context, req *connect.Request[etcdserverpb.AuthUserGrantRoleRequest]) (*connect.Response[etcdserverpb.AuthUserGrantRoleResponse], error) {
 	return c.userGrantRole.CallUnary(ctx, req)
 }
 
 // UserRevokeRole calls etcdserverpb.Auth.UserRevokeRole.
-func (c *authClient) UserRevokeRole(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthUserRevokeRoleRequest]) (*connect_go.Response[etcdserverpb.AuthUserRevokeRoleResponse], error) {
+func (c *authClient) UserRevokeRole(ctx context.Context, req *connect.Request[etcdserverpb.AuthUserRevokeRoleRequest]) (*connect.Response[etcdserverpb.AuthUserRevokeRoleResponse], error) {
 	return c.userRevokeRole.CallUnary(ctx, req)
 }
 
 // RoleAdd calls etcdserverpb.Auth.RoleAdd.
-func (c *authClient) RoleAdd(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthRoleAddRequest]) (*connect_go.Response[etcdserverpb.AuthRoleAddResponse], error) {
+func (c *authClient) RoleAdd(ctx context.Context, req *connect.Request[etcdserverpb.AuthRoleAddRequest]) (*connect.Response[etcdserverpb.AuthRoleAddResponse], error) {
 	return c.roleAdd.CallUnary(ctx, req)
 }
 
 // RoleGet calls etcdserverpb.Auth.RoleGet.
-func (c *authClient) RoleGet(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthRoleGetRequest]) (*connect_go.Response[etcdserverpb.AuthRoleGetResponse], error) {
+func (c *authClient) RoleGet(ctx context.Context, req *connect.Request[etcdserverpb.AuthRoleGetRequest]) (*connect.Response[etcdserverpb.AuthRoleGetResponse], error) {
 	return c.roleGet.CallUnary(ctx, req)
 }
 
 // RoleList calls etcdserverpb.Auth.RoleList.
-func (c *authClient) RoleList(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthRoleListRequest]) (*connect_go.Response[etcdserverpb.AuthRoleListResponse], error) {
+func (c *authClient) RoleList(ctx context.Context, req *connect.Request[etcdserverpb.AuthRoleListRequest]) (*connect.Response[etcdserverpb.AuthRoleListResponse], error) {
 	return c.roleList.CallUnary(ctx, req)
 }
 
 // RoleDelete calls etcdserverpb.Auth.RoleDelete.
-func (c *authClient) RoleDelete(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthRoleDeleteRequest]) (*connect_go.Response[etcdserverpb.AuthRoleDeleteResponse], error) {
+func (c *authClient) RoleDelete(ctx context.Context, req *connect.Request[etcdserverpb.AuthRoleDeleteRequest]) (*connect.Response[etcdserverpb.AuthRoleDeleteResponse], error) {
 	return c.roleDelete.CallUnary(ctx, req)
 }
 
 // RoleGrantPermission calls etcdserverpb.Auth.RoleGrantPermission.
-func (c *authClient) RoleGrantPermission(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthRoleGrantPermissionRequest]) (*connect_go.Response[etcdserverpb.AuthRoleGrantPermissionResponse], error) {
+func (c *authClient) RoleGrantPermission(ctx context.Context, req *connect.Request[etcdserverpb.AuthRoleGrantPermissionRequest]) (*connect.Response[etcdserverpb.AuthRoleGrantPermissionResponse], error) {
 	return c.roleGrantPermission.CallUnary(ctx, req)
 }
 
 // RoleRevokePermission calls etcdserverpb.Auth.RoleRevokePermission.
-func (c *authClient) RoleRevokePermission(ctx context.Context, req *connect_go.Request[etcdserverpb.AuthRoleRevokePermissionRequest]) (*connect_go.Response[etcdserverpb.AuthRoleRevokePermissionResponse], error) {
+func (c *authClient) RoleRevokePermission(ctx context.Context, req *connect.Request[etcdserverpb.AuthRoleRevokePermissionRequest]) (*connect.Response[etcdserverpb.AuthRoleRevokePermissionResponse], error) {
 	return c.roleRevokePermission.CallUnary(ctx, req)
 }
 
 // AuthHandler is an implementation of the etcdserverpb.Auth service.
 type AuthHandler interface {
 	// AuthEnable enables authentication.
-	AuthEnable(context.Context, *connect_go.Request[etcdserverpb.AuthEnableRequest]) (*connect_go.Response[etcdserverpb.AuthEnableResponse], error)
+	AuthEnable(context.Context, *connect.Request[etcdserverpb.AuthEnableRequest]) (*connect.Response[etcdserverpb.AuthEnableResponse], error)
 	// AuthDisable disables authentication.
-	AuthDisable(context.Context, *connect_go.Request[etcdserverpb.AuthDisableRequest]) (*connect_go.Response[etcdserverpb.AuthDisableResponse], error)
+	AuthDisable(context.Context, *connect.Request[etcdserverpb.AuthDisableRequest]) (*connect.Response[etcdserverpb.AuthDisableResponse], error)
 	// AuthStatus displays authentication status.
-	AuthStatus(context.Context, *connect_go.Request[etcdserverpb.AuthStatusRequest]) (*connect_go.Response[etcdserverpb.AuthStatusResponse], error)
+	AuthStatus(context.Context, *connect.Request[etcdserverpb.AuthStatusRequest]) (*connect.Response[etcdserverpb.AuthStatusResponse], error)
 	// Authenticate processes an authenticate request.
-	Authenticate(context.Context, *connect_go.Request[etcdserverpb.AuthenticateRequest]) (*connect_go.Response[etcdserverpb.AuthenticateResponse], error)
+	Authenticate(context.Context, *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error)
 	// UserAdd adds a new user. User name cannot be empty.
-	UserAdd(context.Context, *connect_go.Request[etcdserverpb.AuthUserAddRequest]) (*connect_go.Response[etcdserverpb.AuthUserAddResponse], error)
+	UserAdd(context.Context, *connect.Request[etcdserverpb.AuthUserAddRequest]) (*connect.Response[etcdserverpb.AuthUserAddResponse], error)
 	// UserGet gets detailed user information.
-	UserGet(context.Context, *connect_go.Request[etcdserverpb.AuthUserGetRequest]) (*connect_go.Response[etcdserverpb.AuthUserGetResponse], error)
+	UserGet(context.Context, *connect.Request[etcdserverpb.AuthUserGetRequest]) (*connect.Response[etcdserverpb.AuthUserGetResponse], error)
 	// UserList gets a list of all users.
-	UserList(context.Context, *connect_go.Request[etcdserverpb.AuthUserListRequest]) (*connect_go.Response[etcdserverpb.AuthUserListResponse], error)
+	UserList(context.Context, *connect.Request[etcdserverpb.AuthUserListRequest]) (*connect.Response[etcdserverpb.AuthUserListResponse], error)
 	// UserDelete deletes a specified user.
-	UserDelete(context.Context, *connect_go.Request[etcdserverpb.AuthUserDeleteRequest]) (*connect_go.Response[etcdserverpb.AuthUserDeleteResponse], error)
+	UserDelete(context.Context, *connect.Request[etcdserverpb.AuthUserDeleteRequest]) (*connect.Response[etcdserverpb.AuthUserDeleteResponse], error)
 	// UserChangePassword changes the password of a specified user.
-	UserChangePassword(context.Context, *connect_go.Request[etcdserverpb.AuthUserChangePasswordRequest]) (*connect_go.Response[etcdserverpb.AuthUserChangePasswordResponse], error)
+	UserChangePassword(context.Context, *connect.Request[etcdserverpb.AuthUserChangePasswordRequest]) (*connect.Response[etcdserverpb.AuthUserChangePasswordResponse], error)
 	// UserGrant grants a role to a specified user.
-	UserGrantRole(context.Context, *connect_go.Request[etcdserverpb.AuthUserGrantRoleRequest]) (*connect_go.Response[etcdserverpb.AuthUserGrantRoleResponse], error)
+	UserGrantRole(context.Context, *connect.Request[etcdserverpb.AuthUserGrantRoleRequest]) (*connect.Response[etcdserverpb.AuthUserGrantRoleResponse], error)
 	// UserRevokeRole revokes a role of specified user.
-	UserRevokeRole(context.Context, *connect_go.Request[etcdserverpb.AuthUserRevokeRoleRequest]) (*connect_go.Response[etcdserverpb.AuthUserRevokeRoleResponse], error)
+	UserRevokeRole(context.Context, *connect.Request[etcdserverpb.AuthUserRevokeRoleRequest]) (*connect.Response[etcdserverpb.AuthUserRevokeRoleResponse], error)
 	// RoleAdd adds a new role. Role name cannot be empty.
-	RoleAdd(context.Context, *connect_go.Request[etcdserverpb.AuthRoleAddRequest]) (*connect_go.Response[etcdserverpb.AuthRoleAddResponse], error)
+	RoleAdd(context.Context, *connect.Request[etcdserverpb.AuthRoleAddRequest]) (*connect.Response[etcdserverpb.AuthRoleAddResponse], error)
 	// RoleGet gets detailed role information.
-	RoleGet(context.Context, *connect_go.Request[etcdserverpb.AuthRoleGetRequest]) (*connect_go.Response[etcdserverpb.AuthRoleGetResponse], error)
+	RoleGet(context.Context, *connect.Request[etcdserverpb.AuthRoleGetRequest]) (*connect.Response[etcdserverpb.AuthRoleGetResponse], error)
 	// RoleList gets lists of all roles.
-	RoleList(context.Context, *connect_go.Request[etcdserverpb.AuthRoleListRequest]) (*connect_go.Response[etcdserverpb.AuthRoleListResponse], error)
+	RoleList(context.Context, *connect.Request[etcdserverpb.AuthRoleListRequest]) (*connect.Response[etcdserverpb.AuthRoleListResponse], error)
 	// RoleDelete deletes a specified role.
-	RoleDelete(context.Context, *connect_go.Request[etcdserverpb.AuthRoleDeleteRequest]) (*connect_go.Response[etcdserverpb.AuthRoleDeleteResponse], error)
+	RoleDelete(context.Context, *connect.Request[etcdserverpb.AuthRoleDeleteRequest]) (*connect.Response[etcdserverpb.AuthRoleDeleteResponse], error)
 	// RoleGrantPermission grants a permission of a specified key or range to a specified role.
-	RoleGrantPermission(context.Context, *connect_go.Request[etcdserverpb.AuthRoleGrantPermissionRequest]) (*connect_go.Response[etcdserverpb.AuthRoleGrantPermissionResponse], error)
+	RoleGrantPermission(context.Context, *connect.Request[etcdserverpb.AuthRoleGrantPermissionRequest]) (*connect.Response[etcdserverpb.AuthRoleGrantPermissionResponse], error)
 	// RoleRevokePermission revokes a key or range permission of a specified role.
-	RoleRevokePermission(context.Context, *connect_go.Request[etcdserverpb.AuthRoleRevokePermissionRequest]) (*connect_go.Response[etcdserverpb.AuthRoleRevokePermissionResponse], error)
+	RoleRevokePermission(context.Context, *connect.Request[etcdserverpb.AuthRoleRevokePermissionRequest]) (*connect.Response[etcdserverpb.AuthRoleRevokePermissionResponse], error)
 }
 
 // NewAuthHandler builds an HTTP handler from the service implementation. It returns the path on
@@ -1296,88 +1296,88 @@ type AuthHandler interface {
 //
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
-func NewAuthHandler(svc AuthHandler, opts ...connect_go.HandlerOption) (string, http.Handler) {
-	authAuthEnableHandler := connect_go.NewUnaryHandler(
+func NewAuthHandler(svc AuthHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	authAuthEnableHandler := connect.NewUnaryHandler(
 		AuthAuthEnableProcedure,
 		svc.AuthEnable,
 		opts...,
 	)
-	authAuthDisableHandler := connect_go.NewUnaryHandler(
+	authAuthDisableHandler := connect.NewUnaryHandler(
 		AuthAuthDisableProcedure,
 		svc.AuthDisable,
 		opts...,
 	)
-	authAuthStatusHandler := connect_go.NewUnaryHandler(
+	authAuthStatusHandler := connect.NewUnaryHandler(
 		AuthAuthStatusProcedure,
 		svc.AuthStatus,
 		opts...,
 	)
-	authAuthenticateHandler := connect_go.NewUnaryHandler(
+	authAuthenticateHandler := connect.NewUnaryHandler(
 		AuthAuthenticateProcedure,
 		svc.Authenticate,
 		opts...,
 	)
-	authUserAddHandler := connect_go.NewUnaryHandler(
+	authUserAddHandler := connect.NewUnaryHandler(
 		AuthUserAddProcedure,
 		svc.UserAdd,
 		opts...,
 	)
-	authUserGetHandler := connect_go.NewUnaryHandler(
+	authUserGetHandler := connect.NewUnaryHandler(
 		AuthUserGetProcedure,
 		svc.UserGet,
 		opts...,
 	)
-	authUserListHandler := connect_go.NewUnaryHandler(
+	authUserListHandler := connect.NewUnaryHandler(
 		AuthUserListProcedure,
 		svc.UserList,
 		opts...,
 	)
-	authUserDeleteHandler := connect_go.NewUnaryHandler(
+	authUserDeleteHandler := connect.NewUnaryHandler(
 		AuthUserDeleteProcedure,
 		svc.UserDelete,
 		opts...,
 	)
-	authUserChangePasswordHandler := connect_go.NewUnaryHandler(
+	authUserChangePasswordHandler := connect.NewUnaryHandler(
 		AuthUserChangePasswordProcedure,
 		svc.UserChangePassword,
 		opts...,
 	)
-	authUserGrantRoleHandler := connect_go.NewUnaryHandler(
+	authUserGrantRoleHandler := connect.NewUnaryHandler(
 		AuthUserGrantRoleProcedure,
 		svc.UserGrantRole,
 		opts...,
 	)
-	authUserRevokeRoleHandler := connect_go.NewUnaryHandler(
+	authUserRevokeRoleHandler := connect.NewUnaryHandler(
 		AuthUserRevokeRoleProcedure,
 		svc.UserRevokeRole,
 		opts...,
 	)
-	authRoleAddHandler := connect_go.NewUnaryHandler(
+	authRoleAddHandler := connect.NewUnaryHandler(
 		AuthRoleAddProcedure,
 		svc.RoleAdd,
 		opts...,
 	)
-	authRoleGetHandler := connect_go.NewUnaryHandler(
+	authRoleGetHandler := connect.NewUnaryHandler(
 		AuthRoleGetProcedure,
 		svc.RoleGet,
 		opts...,
 	)
-	authRoleListHandler := connect_go.NewUnaryHandler(
+	authRoleListHandler := connect.NewUnaryHandler(
 		AuthRoleListProcedure,
 		svc.RoleList,
 		opts...,
 	)
-	authRoleDeleteHandler := connect_go.NewUnaryHandler(
+	authRoleDeleteHandler := connect.NewUnaryHandler(
 		AuthRoleDeleteProcedure,
 		svc.RoleDelete,
 		opts...,
 	)
-	authRoleGrantPermissionHandler := connect_go.NewUnaryHandler(
+	authRoleGrantPermissionHandler := connect.NewUnaryHandler(
 		AuthRoleGrantPermissionProcedure,
 		svc.RoleGrantPermission,
 		opts...,
 	)
-	authRoleRevokePermissionHandler := connect_go.NewUnaryHandler(
+	authRoleRevokePermissionHandler := connect.NewUnaryHandler(
 		AuthRoleRevokePermissionProcedure,
 		svc.RoleRevokePermission,
 		opts...,
@@ -1427,70 +1427,70 @@ func NewAuthHandler(svc AuthHandler, opts ...connect_go.HandlerOption) (string, 
 // UnimplementedAuthHandler returns CodeUnimplemented from all methods.
 type UnimplementedAuthHandler struct{}
 
-func (UnimplementedAuthHandler) AuthEnable(context.Context, *connect_go.Request[etcdserverpb.AuthEnableRequest]) (*connect_go.Response[etcdserverpb.AuthEnableResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.AuthEnable is not implemented"))
+func (UnimplementedAuthHandler) AuthEnable(context.Context, *connect.Request[etcdserverpb.AuthEnableRequest]) (*connect.Response[etcdserverpb.AuthEnableResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.AuthEnable is not implemented"))
 }
 
-func (UnimplementedAuthHandler) AuthDisable(context.Context, *connect_go.Request[etcdserverpb.AuthDisableRequest]) (*connect_go.Response[etcdserverpb.AuthDisableResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.AuthDisable is not implemented"))
+func (UnimplementedAuthHandler) AuthDisable(context.Context, *connect.Request[etcdserverpb.AuthDisableRequest]) (*connect.Response[etcdserverpb.AuthDisableResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.AuthDisable is not implemented"))
 }
 
-func (UnimplementedAuthHandler) AuthStatus(context.Context, *connect_go.Request[etcdserverpb.AuthStatusRequest]) (*connect_go.Response[etcdserverpb.AuthStatusResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.AuthStatus is not implemented"))
+func (UnimplementedAuthHandler) AuthStatus(context.Context, *connect.Request[etcdserverpb.AuthStatusRequest]) (*connect.Response[etcdserverpb.AuthStatusResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.AuthStatus is not implemented"))
 }
 
-func (UnimplementedAuthHandler) Authenticate(context.Context, *connect_go.Request[etcdserverpb.AuthenticateRequest]) (*connect_go.Response[etcdserverpb.AuthenticateResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.Authenticate is not implemented"))
+func (UnimplementedAuthHandler) Authenticate(context.Context, *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.Authenticate is not implemented"))
 }
 
-func (UnimplementedAuthHandler) UserAdd(context.Context, *connect_go.Request[etcdserverpb.AuthUserAddRequest]) (*connect_go.Response[etcdserverpb.AuthUserAddResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserAdd is not implemented"))
+func (UnimplementedAuthHandler) UserAdd(context.Context, *connect.Request[etcdserverpb.AuthUserAddRequest]) (*connect.Response[etcdserverpb.AuthUserAddResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserAdd is not implemented"))
 }
 
-func (UnimplementedAuthHandler) UserGet(context.Context, *connect_go.Request[etcdserverpb.AuthUserGetRequest]) (*connect_go.Response[etcdserverpb.AuthUserGetResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserGet is not implemented"))
+func (UnimplementedAuthHandler) UserGet(context.Context, *connect.Request[etcdserverpb.AuthUserGetRequest]) (*connect.Response[etcdserverpb.AuthUserGetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserGet is not implemented"))
 }
 
-func (UnimplementedAuthHandler) UserList(context.Context, *connect_go.Request[etcdserverpb.AuthUserListRequest]) (*connect_go.Response[etcdserverpb.AuthUserListResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserList is not implemented"))
+func (UnimplementedAuthHandler) UserList(context.Context, *connect.Request[etcdserverpb.AuthUserListRequest]) (*connect.Response[etcdserverpb.AuthUserListResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserList is not implemented"))
 }
 
-func (UnimplementedAuthHandler) UserDelete(context.Context, *connect_go.Request[etcdserverpb.AuthUserDeleteRequest]) (*connect_go.Response[etcdserverpb.AuthUserDeleteResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserDelete is not implemented"))
+func (UnimplementedAuthHandler) UserDelete(context.Context, *connect.Request[etcdserverpb.AuthUserDeleteRequest]) (*connect.Response[etcdserverpb.AuthUserDeleteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserDelete is not implemented"))
 }
 
-func (UnimplementedAuthHandler) UserChangePassword(context.Context, *connect_go.Request[etcdserverpb.AuthUserChangePasswordRequest]) (*connect_go.Response[etcdserverpb.AuthUserChangePasswordResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserChangePassword is not implemented"))
+func (UnimplementedAuthHandler) UserChangePassword(context.Context, *connect.Request[etcdserverpb.AuthUserChangePasswordRequest]) (*connect.Response[etcdserverpb.AuthUserChangePasswordResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserChangePassword is not implemented"))
 }
 
-func (UnimplementedAuthHandler) UserGrantRole(context.Context, *connect_go.Request[etcdserverpb.AuthUserGrantRoleRequest]) (*connect_go.Response[etcdserverpb.AuthUserGrantRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserGrantRole is not implemented"))
+func (UnimplementedAuthHandler) UserGrantRole(context.Context, *connect.Request[etcdserverpb.AuthUserGrantRoleRequest]) (*connect.Response[etcdserverpb.AuthUserGrantRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserGrantRole is not implemented"))
 }
 
-func (UnimplementedAuthHandler) UserRevokeRole(context.Context, *connect_go.Request[etcdserverpb.AuthUserRevokeRoleRequest]) (*connect_go.Response[etcdserverpb.AuthUserRevokeRoleResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserRevokeRole is not implemented"))
+func (UnimplementedAuthHandler) UserRevokeRole(context.Context, *connect.Request[etcdserverpb.AuthUserRevokeRoleRequest]) (*connect.Response[etcdserverpb.AuthUserRevokeRoleResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.UserRevokeRole is not implemented"))
 }
 
-func (UnimplementedAuthHandler) RoleAdd(context.Context, *connect_go.Request[etcdserverpb.AuthRoleAddRequest]) (*connect_go.Response[etcdserverpb.AuthRoleAddResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleAdd is not implemented"))
+func (UnimplementedAuthHandler) RoleAdd(context.Context, *connect.Request[etcdserverpb.AuthRoleAddRequest]) (*connect.Response[etcdserverpb.AuthRoleAddResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleAdd is not implemented"))
 }
 
-func (UnimplementedAuthHandler) RoleGet(context.Context, *connect_go.Request[etcdserverpb.AuthRoleGetRequest]) (*connect_go.Response[etcdserverpb.AuthRoleGetResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleGet is not implemented"))
+func (UnimplementedAuthHandler) RoleGet(context.Context, *connect.Request[etcdserverpb.AuthRoleGetRequest]) (*connect.Response[etcdserverpb.AuthRoleGetResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleGet is not implemented"))
 }
 
-func (UnimplementedAuthHandler) RoleList(context.Context, *connect_go.Request[etcdserverpb.AuthRoleListRequest]) (*connect_go.Response[etcdserverpb.AuthRoleListResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleList is not implemented"))
+func (UnimplementedAuthHandler) RoleList(context.Context, *connect.Request[etcdserverpb.AuthRoleListRequest]) (*connect.Response[etcdserverpb.AuthRoleListResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleList is not implemented"))
 }
 
-func (UnimplementedAuthHandler) RoleDelete(context.Context, *connect_go.Request[etcdserverpb.AuthRoleDeleteRequest]) (*connect_go.Response[etcdserverpb.AuthRoleDeleteResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleDelete is not implemented"))
+func (UnimplementedAuthHandler) RoleDelete(context.Context, *connect.Request[etcdserverpb.AuthRoleDeleteRequest]) (*connect.Response[etcdserverpb.AuthRoleDeleteResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleDelete is not implemented"))
 }
 
-func (UnimplementedAuthHandler) RoleGrantPermission(context.Context, *connect_go.Request[etcdserverpb.AuthRoleGrantPermissionRequest]) (*connect_go.Response[etcdserverpb.AuthRoleGrantPermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleGrantPermission is not implemented"))
+func (UnimplementedAuthHandler) RoleGrantPermission(context.Context, *connect.Request[etcdserverpb.AuthRoleGrantPermissionRequest]) (*connect.Response[etcdserverpb.AuthRoleGrantPermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleGrantPermission is not implemented"))
 }
 
-func (UnimplementedAuthHandler) RoleRevokePermission(context.Context, *connect_go.Request[etcdserverpb.AuthRoleRevokePermissionRequest]) (*connect_go.Response[etcdserverpb.AuthRoleRevokePermissionResponse], error) {
-	return nil, connect_go.NewError(connect_go.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleRevokePermission is not implemented"))
+func (UnimplementedAuthHandler) RoleRevokePermission(context.Context, *connect.Request[etcdserverpb.AuthRoleRevokePermissionRequest]) (*connect.Response[etcdserverpb.AuthRoleRevokePermissionResponse], error) {
+	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("etcdserverpb.Auth.RoleRevokePermission is not implemented"))
 }

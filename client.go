@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 

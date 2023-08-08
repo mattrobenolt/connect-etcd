@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/bufbuild/connect-go"
+	"connectrpc.com/connect"
 	client "go.withmatt.com/connect-etcd"
 	etcd "go.withmatt.com/connect-etcd/types/etcdserverpb"
 )
