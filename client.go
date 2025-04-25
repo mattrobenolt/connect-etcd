@@ -6,6 +6,7 @@ import (
 	"crypto/x509"
 	"errors"
 	"fmt"
+	"log/slog"
 	"net"
 	"net/http"
 	"os"
@@ -13,10 +14,10 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"go.uber.org/zap"
 	"golang.org/x/net/http2"
 
 	"go.withmatt.com/connect-etcd/internal/codec"
+	"go.withmatt.com/connect-etcd/internal/log"
 	"go.withmatt.com/connect-etcd/internal/retry"
 	"go.withmatt.com/connect-etcd/types/etcdserverpb/etcdserverpbconnect"
 )
@@ -24,9 +25,35 @@ import (
 type Config struct {
 	Endpoints    []string
 	TLSConfig    *tls.Config
-	Logger       *zap.Logger
+	Logger       log.LeveledLogger
 	RetryOptions *RetryOptions
 	DialContext  func(context.Context, string, string) (net.Conn, error)
+}
+
+type LeveledLogger = log.LeveledLogger
+
+type slogAdapter struct {
+	l *slog.Logger
+}
+
+func (a *slogAdapter) CheckDebug() bool {
+	return a.l.Enabled(context.Background(), slog.LevelDebug)
+}
+
+func (a *slogAdapter) CheckInfo() bool {
+	return a.l.Enabled(context.Background(), slog.LevelInfo)
+}
+
+func (a *slogAdapter) Info(msg string, args ...any) {
+	a.l.Info(msg, args...)
+}
+
+func (a *slogAdapter) Debug(msg string, args ...any) {
+	a.l.Debug(msg, args...)
+}
+
+func (a *slogAdapter) Warn(msg string, args ...any) {
+	a.l.Warn(msg, args...)
 }
 
 type RetryOptions struct {
@@ -39,7 +66,7 @@ var NoRetry = &RetryOptions{UnaryAttempts: 0}
 
 type Client struct {
 	httpClient connect.HTTPClient
-	logger     *zap.Logger
+	logger     LeveledLogger
 	endpoint   string
 	opts       []connect.ClientOption
 
@@ -53,7 +80,7 @@ type Client struct {
 	leaseClient etcdserverpbconnect.LeaseClient
 }
 
-func (c *Client) Logger() *zap.Logger {
+func (c *Client) Logger() LeveledLogger {
 	return c.logger
 }
 
@@ -90,15 +117,13 @@ func (c *Client) Lease() etcdserverpbconnect.LeaseClient {
 	return c.leaseClient
 }
 
-var defaultLogger = zap.NewNop()
-
 func NewClient(cfg Config) *Client {
 	protocol := "https"
 	if cfg.TLSConfig == nil {
 		protocol = "http"
 	}
 	if cfg.Logger == nil {
-		cfg.Logger = defaultLogger
+		cfg.Logger = log.Default
 	}
 	// TODO: handle multiple endpoints
 	endpoint := protocol + "://" + cfg.Endpoints[0]

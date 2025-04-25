@@ -6,7 +6,8 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"go.uber.org/zap"
+
+	"go.withmatt.com/connect-etcd/internal/log"
 )
 
 func Jitter(d time.Duration, j float64) time.Duration {
@@ -21,7 +22,7 @@ func Jitter(d time.Duration, j float64) time.Duration {
 	return time.Duration(float64(d) * (1 + mult))
 }
 
-func Forever(ctx context.Context, l *zap.Logger, d time.Duration, j float64, fn func() error) error {
+func Forever(ctx context.Context, l log.LeveledLogger, d time.Duration, j float64, fn func() error) error {
 	var (
 		err error
 		i   int
@@ -37,9 +38,9 @@ func Forever(ctx context.Context, l *zap.Logger, d time.Duration, j float64, fn 
 
 		d := Jitter(d, j)
 		l.Warn("retrying",
-			zap.Duration("wait", d),
-			zap.Int("attempt", i),
-			zap.String("error", err.Error()),
+			"wait", d,
+			"attempt", i,
+			"error", err.Error(),
 		)
 
 		t := time.NewTicker(d)
@@ -52,7 +53,7 @@ func Forever(ctx context.Context, l *zap.Logger, d time.Duration, j float64, fn 
 	}
 }
 
-func RetryFunc[T any](ctx context.Context, l *zap.Logger, n int, d time.Duration, j float64, fn func() (T, error)) (T, error) {
+func RetryFunc[T any](ctx context.Context, l log.LeveledLogger, n int, d time.Duration, j float64, fn func() (T, error)) (T, error) {
 	var (
 		v   T
 		err error
@@ -76,9 +77,9 @@ func RetryFunc[T any](ctx context.Context, l *zap.Logger, n int, d time.Duration
 
 		d := Jitter(d, j)
 		l.Warn("retrying",
-			zap.Duration("wait", d),
-			zap.Int("attempt", i),
-			zap.String("error", err.Error()),
+			"wait", d,
+			"attempt", i,
+			"error", err.Error(),
 		)
 
 		t := time.NewTicker(d)
@@ -91,7 +92,7 @@ func RetryFunc[T any](ctx context.Context, l *zap.Logger, n int, d time.Duration
 	}
 }
 
-func UnaryInterceptor(l *zap.Logger, n int, d time.Duration, j float64) connect.UnaryInterceptorFunc {
+func UnaryInterceptor(l log.LeveledLogger, n int, d time.Duration, j float64) connect.UnaryInterceptorFunc {
 	interceptor := func(next connect.UnaryFunc) connect.UnaryFunc {
 		return connect.UnaryFunc(func(
 			ctx context.Context,

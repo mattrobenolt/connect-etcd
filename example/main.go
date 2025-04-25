@@ -39,7 +39,7 @@ func main() {
 		}
 	}
 	c := client.New(&client.Config{
-		Endpoint:  "127.0.0.1:2379",
+		Endpoints: "127.0.0.1:2379",
 		TLSConfig: tlsConfig,
 	})
 

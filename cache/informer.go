@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"connectrpc.com/connect"
-	"go.uber.org/zap"
 	client "go.withmatt.com/connect-etcd"
 	"go.withmatt.com/connect-etcd/internal/retry"
 	"go.withmatt.com/connect-etcd/types/etcdserverpb"
@@ -109,10 +108,10 @@ func (i *Informer) load(ctx context.Context) error {
 	var serializable bool
 
 	for {
-		if ce := l.Check(zap.DebugLevel, "Range"); ce != nil {
-			ce.Write(
-				zap.ByteString("key", startKey),
-				zap.Int64("revision", i.lastRevision),
+		if l.CheckDebug() {
+			l.Debug("Range",
+				"key", string(startKey),
+				"revision", i.lastRevision,
 			)
 		}
 
@@ -202,14 +201,12 @@ func (i *Informer) Run(ctx context.Context) error {
 		return err
 	}
 
-	if ce := l.Check(
-		zap.InfoLevel,
-		"informer sync finished",
-	); ce != nil {
-		ce.Write(
-			zap.Uint64("total_keys", i.totalKeys),
-			zap.Int64("revision", i.lastRevision),
-			zap.Duration("duration", time.Since(start)),
+	if l.CheckInfo() {
+		l.Info(
+			"informer sync finished",
+			"total_keys", i.totalKeys,
+			"revision", i.lastRevision,
+			"duration", time.Since(start),
 		)
 	}
 
@@ -258,13 +255,13 @@ func (i *Informer) stream(ctx context.Context) error {
 		return errors.New("informer: unexpected watch message, expected CreateResponse")
 	}
 
-	if ce := l.Check(zap.DebugLevel, "stream started"); ce != nil {
-		ce.Write(
-			zap.Int64("watch_id", watchId),
-			zap.Uint64("cluster_id", msg.Header.ClusterId),
-			zap.Uint64("member_id", msg.Header.MemberId),
-			zap.Int64("revision", msg.Header.Revision),
-			zap.Uint64("raft_term", msg.Header.RaftTerm),
+	if l.CheckDebug() {
+		l.Debug("stream started",
+			"watch_id", watchId,
+			"cluster_id", msg.Header.ClusterId,
+			"member_id", msg.Header.MemberId,
+			"revision", msg.Header.Revision,
+			"raft_term", msg.Header.RaftTerm,
 		)
 	}
 	i.lastRevision = msg.Header.Revision
@@ -290,16 +287,16 @@ func (i *Informer) stream(ctx context.Context) error {
 				return
 			}
 
-			if ce := l.Check(zap.DebugLevel, "receive message"); ce != nil {
-				ce.Write(
-					zap.Int64("watch_id", watchId),
-					zap.Uint64("cluster_id", msg.Header.ClusterId),
-					zap.Uint64("member_id", msg.Header.MemberId),
-					zap.Int64("revision", msg.Header.Revision),
-					zap.Uint64("raft_term", msg.Header.RaftTerm),
-					zap.Int64("last_revision", i.lastRevision),
-					zap.Int("events", len(msg.Events)),
-					zap.Bool("fragment", msg.Fragment),
+			if l.CheckDebug() {
+				l.Debug("receive message",
+					"watch_id", watchId,
+					"cluster_id", msg.Header.ClusterId,
+					"member_id", msg.Header.MemberId,
+					"revision", msg.Header.Revision,
+					"raft_term", msg.Header.RaftTerm,
+					"last_revision", i.lastRevision,
+					"events", len(msg.Events),
+					"fragment", msg.Fragment,
 				)
 			}
 

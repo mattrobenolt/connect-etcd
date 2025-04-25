@@ -7,7 +7,6 @@ import (
 	"os"
 	"os/signal"
 
-	"go.uber.org/zap"
 	client "go.withmatt.com/connect-etcd"
 	"go.withmatt.com/connect-etcd/cache"
 	"go.withmatt.com/connect-etcd/types/mvccpb"
@@ -21,14 +20,10 @@ var (
 func init() { flag.Parse() }
 
 func main() {
-	ll := zap.NewExample()
-	defer ll.Sync()
-
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
 	c := client.New(&client.Config{
-		Logger:   ll.With(zap.String("logger", "etcd")),
 		Endpoint: "127.0.0.1:2379",
 	})
 
@@ -55,3 +50,39 @@ func main() {
 		}
 	}
 }
+
+// type zapLoggerAdapter struct {
+// 	l *zap.Logger
+// }
+
+// func (a *zapLoggerAdapter) CheckDebug() bool {
+// 	return a.l.Core().Enabled(zap.DebugLevel)
+// }
+
+// func (a *zapLoggerAdapter) CheckInfo() bool {
+// 	return a.l.Core().Enabled(zap.InfoLevel)
+// }
+
+// func (a *zapLoggerAdapter) Info(msg string, pairs ...any) {
+// 	fields := make([]zap.Field, 0, len(pairs))
+// 	for i := 0; i < len(pairs); i += 2 {
+// 		fields = append(fields, zap.Any(pairs[i].(string), pairs[i+1]))
+// 	}
+// 	a.l.Info(msg, fields...)
+// }
+
+// func (a *zapLoggerAdapter) Debug(msg string, pairs ...any) {
+// 	fields := make([]zap.Field, 0, len(pairs))
+// 	for i := 0; i < len(pairs); i += 2 {
+// 		fields = append(fields, zap.Any(pairs[i].(string), pairs[i+1]))
+// 	}
+// 	a.l.Debug(msg, fields...)
+// }
+
+// func (a *zapLoggerAdapter) Warn(msg string, pairs ...any) {
+// 	fields := make([]zap.Field, 0, len(pairs))
+// 	for i := 0; i < len(pairs); i += 2 {
+// 		fields = append(fields, zap.Any(pairs[i].(string), pairs[i+1]))
+// 	}
+// 	a.l.Warn(msg, fields...)
+// }
