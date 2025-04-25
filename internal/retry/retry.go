@@ -2,7 +2,7 @@ package retry
 
 import (
 	"context"
-	"math/rand"
+	"math/rand/v2"
 	"time"
 
 	"connectrpc.com/connect"

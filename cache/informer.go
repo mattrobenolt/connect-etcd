@@ -4,7 +4,7 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"math/rand"
+	"math/rand/v2"
 	"sync"
 	"time"
 
@@ -124,11 +124,7 @@ func (i *Informer) load(ctx context.Context) error {
 		// serve the rest of the pages from a replica with an explicit
 		// revision.
 		if i.lastRevision == 0 {
-			if pageSize < defaultPageSize {
-				limit = pageSize
-			} else {
-				limit = defaultPageSize
-			}
+			limit = min(pageSize, defaultPageSize)
 			serializable = false
 		} else {
 			limit = pageSize
@@ -228,7 +224,7 @@ func (i *Informer) Run(ctx context.Context) error {
 }
 
 func (i *Informer) stream(ctx context.Context) error {
-	watchId := rand.Int63()
+	watchId := rand.Int64()
 	l := i.Client.Logger().With(
 		zap.Int64("watch_id", watchId),
 	)

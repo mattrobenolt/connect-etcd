@@ -18,7 +18,7 @@ import (
 // generated with a version of connect newer than the one compiled into your binary. You can fix the
 // problem by either regenerating this code with an older version of connect or updating the connect
 // version compiled into your binary.
-const _ = connect.IsAtLeastVersion0_1_0
+const _ = connect.IsAtLeastVersion1_13_0
 
 const (
 	// KVName is the fully-qualified name of the KV service.
@@ -161,31 +161,37 @@ type KVClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewKVClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) KVClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	kVMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("KV").Methods()
 	return &kVClient{
 		_range: connect.NewClient[etcdserverpb.RangeRequest, etcdserverpb.RangeResponse](
 			httpClient,
 			baseURL+KVRangeProcedure,
-			opts...,
+			connect.WithSchema(kVMethods.ByName("Range")),
+			connect.WithClientOptions(opts...),
 		),
 		put: connect.NewClient[etcdserverpb.PutRequest, etcdserverpb.PutResponse](
 			httpClient,
 			baseURL+KVPutProcedure,
-			opts...,
+			connect.WithSchema(kVMethods.ByName("Put")),
+			connect.WithClientOptions(opts...),
 		),
 		deleteRange: connect.NewClient[etcdserverpb.DeleteRangeRequest, etcdserverpb.DeleteRangeResponse](
 			httpClient,
 			baseURL+KVDeleteRangeProcedure,
-			opts...,
+			connect.WithSchema(kVMethods.ByName("DeleteRange")),
+			connect.WithClientOptions(opts...),
 		),
 		txn: connect.NewClient[etcdserverpb.TxnRequest, etcdserverpb.TxnResponse](
 			httpClient,
 			baseURL+KVTxnProcedure,
-			opts...,
+			connect.WithSchema(kVMethods.ByName("Txn")),
+			connect.WithClientOptions(opts...),
 		),
 		compact: connect.NewClient[etcdserverpb.CompactionRequest, etcdserverpb.CompactionResponse](
 			httpClient,
 			baseURL+KVCompactProcedure,
-			opts...,
+			connect.WithSchema(kVMethods.ByName("Compact")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -253,30 +259,36 @@ type KVHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewKVHandler(svc KVHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	kVMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("KV").Methods()
 	kVRangeHandler := connect.NewUnaryHandler(
 		KVRangeProcedure,
 		svc.Range,
-		opts...,
+		connect.WithSchema(kVMethods.ByName("Range")),
+		connect.WithHandlerOptions(opts...),
 	)
 	kVPutHandler := connect.NewUnaryHandler(
 		KVPutProcedure,
 		svc.Put,
-		opts...,
+		connect.WithSchema(kVMethods.ByName("Put")),
+		connect.WithHandlerOptions(opts...),
 	)
 	kVDeleteRangeHandler := connect.NewUnaryHandler(
 		KVDeleteRangeProcedure,
 		svc.DeleteRange,
-		opts...,
+		connect.WithSchema(kVMethods.ByName("DeleteRange")),
+		connect.WithHandlerOptions(opts...),
 	)
 	kVTxnHandler := connect.NewUnaryHandler(
 		KVTxnProcedure,
 		svc.Txn,
-		opts...,
+		connect.WithSchema(kVMethods.ByName("Txn")),
+		connect.WithHandlerOptions(opts...),
 	)
 	kVCompactHandler := connect.NewUnaryHandler(
 		KVCompactProcedure,
 		svc.Compact,
-		opts...,
+		connect.WithSchema(kVMethods.ByName("Compact")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/etcdserverpb.KV/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -338,11 +350,13 @@ type WatchClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewWatchClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) WatchClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	watchMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Watch").Methods()
 	return &watchClient{
 		watch: connect.NewClient[etcdserverpb.WatchRequest, etcdserverpb.WatchResponse](
 			httpClient,
 			baseURL+WatchWatchProcedure,
-			opts...,
+			connect.WithSchema(watchMethods.ByName("Watch")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -373,10 +387,12 @@ type WatchHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewWatchHandler(svc WatchHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	watchMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Watch").Methods()
 	watchWatchHandler := connect.NewBidiStreamHandler(
 		WatchWatchProcedure,
 		svc.Watch,
-		opts...,
+		connect.WithSchema(watchMethods.ByName("Watch")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/etcdserverpb.Watch/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -421,31 +437,37 @@ type LeaseClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewLeaseClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) LeaseClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	leaseMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Lease").Methods()
 	return &leaseClient{
 		leaseGrant: connect.NewClient[etcdserverpb.LeaseGrantRequest, etcdserverpb.LeaseGrantResponse](
 			httpClient,
 			baseURL+LeaseLeaseGrantProcedure,
-			opts...,
+			connect.WithSchema(leaseMethods.ByName("LeaseGrant")),
+			connect.WithClientOptions(opts...),
 		),
 		leaseRevoke: connect.NewClient[etcdserverpb.LeaseRevokeRequest, etcdserverpb.LeaseRevokeResponse](
 			httpClient,
 			baseURL+LeaseLeaseRevokeProcedure,
-			opts...,
+			connect.WithSchema(leaseMethods.ByName("LeaseRevoke")),
+			connect.WithClientOptions(opts...),
 		),
 		leaseKeepAlive: connect.NewClient[etcdserverpb.LeaseKeepAliveRequest, etcdserverpb.LeaseKeepAliveResponse](
 			httpClient,
 			baseURL+LeaseLeaseKeepAliveProcedure,
-			opts...,
+			connect.WithSchema(leaseMethods.ByName("LeaseKeepAlive")),
+			connect.WithClientOptions(opts...),
 		),
 		leaseTimeToLive: connect.NewClient[etcdserverpb.LeaseTimeToLiveRequest, etcdserverpb.LeaseTimeToLiveResponse](
 			httpClient,
 			baseURL+LeaseLeaseTimeToLiveProcedure,
-			opts...,
+			connect.WithSchema(leaseMethods.ByName("LeaseTimeToLive")),
+			connect.WithClientOptions(opts...),
 		),
 		leaseLeases: connect.NewClient[etcdserverpb.LeaseLeasesRequest, etcdserverpb.LeaseLeasesResponse](
 			httpClient,
 			baseURL+LeaseLeaseLeasesProcedure,
-			opts...,
+			connect.WithSchema(leaseMethods.ByName("LeaseLeases")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -507,30 +529,36 @@ type LeaseHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewLeaseHandler(svc LeaseHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	leaseMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Lease").Methods()
 	leaseLeaseGrantHandler := connect.NewUnaryHandler(
 		LeaseLeaseGrantProcedure,
 		svc.LeaseGrant,
-		opts...,
+		connect.WithSchema(leaseMethods.ByName("LeaseGrant")),
+		connect.WithHandlerOptions(opts...),
 	)
 	leaseLeaseRevokeHandler := connect.NewUnaryHandler(
 		LeaseLeaseRevokeProcedure,
 		svc.LeaseRevoke,
-		opts...,
+		connect.WithSchema(leaseMethods.ByName("LeaseRevoke")),
+		connect.WithHandlerOptions(opts...),
 	)
 	leaseLeaseKeepAliveHandler := connect.NewBidiStreamHandler(
 		LeaseLeaseKeepAliveProcedure,
 		svc.LeaseKeepAlive,
-		opts...,
+		connect.WithSchema(leaseMethods.ByName("LeaseKeepAlive")),
+		connect.WithHandlerOptions(opts...),
 	)
 	leaseLeaseTimeToLiveHandler := connect.NewUnaryHandler(
 		LeaseLeaseTimeToLiveProcedure,
 		svc.LeaseTimeToLive,
-		opts...,
+		connect.WithSchema(leaseMethods.ByName("LeaseTimeToLive")),
+		connect.WithHandlerOptions(opts...),
 	)
 	leaseLeaseLeasesHandler := connect.NewUnaryHandler(
 		LeaseLeaseLeasesProcedure,
 		svc.LeaseLeases,
-		opts...,
+		connect.WithSchema(leaseMethods.ByName("LeaseLeases")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/etcdserverpb.Lease/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -596,31 +624,37 @@ type ClusterClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewClusterClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) ClusterClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	clusterMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Cluster").Methods()
 	return &clusterClient{
 		memberAdd: connect.NewClient[etcdserverpb.MemberAddRequest, etcdserverpb.MemberAddResponse](
 			httpClient,
 			baseURL+ClusterMemberAddProcedure,
-			opts...,
+			connect.WithSchema(clusterMethods.ByName("MemberAdd")),
+			connect.WithClientOptions(opts...),
 		),
 		memberRemove: connect.NewClient[etcdserverpb.MemberRemoveRequest, etcdserverpb.MemberRemoveResponse](
 			httpClient,
 			baseURL+ClusterMemberRemoveProcedure,
-			opts...,
+			connect.WithSchema(clusterMethods.ByName("MemberRemove")),
+			connect.WithClientOptions(opts...),
 		),
 		memberUpdate: connect.NewClient[etcdserverpb.MemberUpdateRequest, etcdserverpb.MemberUpdateResponse](
 			httpClient,
 			baseURL+ClusterMemberUpdateProcedure,
-			opts...,
+			connect.WithSchema(clusterMethods.ByName("MemberUpdate")),
+			connect.WithClientOptions(opts...),
 		),
 		memberList: connect.NewClient[etcdserverpb.MemberListRequest, etcdserverpb.MemberListResponse](
 			httpClient,
 			baseURL+ClusterMemberListProcedure,
-			opts...,
+			connect.WithSchema(clusterMethods.ByName("MemberList")),
+			connect.WithClientOptions(opts...),
 		),
 		memberPromote: connect.NewClient[etcdserverpb.MemberPromoteRequest, etcdserverpb.MemberPromoteResponse](
 			httpClient,
 			baseURL+ClusterMemberPromoteProcedure,
-			opts...,
+			connect.WithSchema(clusterMethods.ByName("MemberPromote")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -679,30 +713,36 @@ type ClusterHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewClusterHandler(svc ClusterHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	clusterMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Cluster").Methods()
 	clusterMemberAddHandler := connect.NewUnaryHandler(
 		ClusterMemberAddProcedure,
 		svc.MemberAdd,
-		opts...,
+		connect.WithSchema(clusterMethods.ByName("MemberAdd")),
+		connect.WithHandlerOptions(opts...),
 	)
 	clusterMemberRemoveHandler := connect.NewUnaryHandler(
 		ClusterMemberRemoveProcedure,
 		svc.MemberRemove,
-		opts...,
+		connect.WithSchema(clusterMethods.ByName("MemberRemove")),
+		connect.WithHandlerOptions(opts...),
 	)
 	clusterMemberUpdateHandler := connect.NewUnaryHandler(
 		ClusterMemberUpdateProcedure,
 		svc.MemberUpdate,
-		opts...,
+		connect.WithSchema(clusterMethods.ByName("MemberUpdate")),
+		connect.WithHandlerOptions(opts...),
 	)
 	clusterMemberListHandler := connect.NewUnaryHandler(
 		ClusterMemberListProcedure,
 		svc.MemberList,
-		opts...,
+		connect.WithSchema(clusterMethods.ByName("MemberList")),
+		connect.WithHandlerOptions(opts...),
 	)
 	clusterMemberPromoteHandler := connect.NewUnaryHandler(
 		ClusterMemberPromoteProcedure,
 		svc.MemberPromote,
-		opts...,
+		connect.WithSchema(clusterMethods.ByName("MemberPromote")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/etcdserverpb.Cluster/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -782,46 +822,55 @@ type MaintenanceClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewMaintenanceClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) MaintenanceClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	maintenanceMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Maintenance").Methods()
 	return &maintenanceClient{
 		alarm: connect.NewClient[etcdserverpb.AlarmRequest, etcdserverpb.AlarmResponse](
 			httpClient,
 			baseURL+MaintenanceAlarmProcedure,
-			opts...,
+			connect.WithSchema(maintenanceMethods.ByName("Alarm")),
+			connect.WithClientOptions(opts...),
 		),
 		status: connect.NewClient[etcdserverpb.StatusRequest, etcdserverpb.StatusResponse](
 			httpClient,
 			baseURL+MaintenanceStatusProcedure,
-			opts...,
+			connect.WithSchema(maintenanceMethods.ByName("Status")),
+			connect.WithClientOptions(opts...),
 		),
 		defragment: connect.NewClient[etcdserverpb.DefragmentRequest, etcdserverpb.DefragmentResponse](
 			httpClient,
 			baseURL+MaintenanceDefragmentProcedure,
-			opts...,
+			connect.WithSchema(maintenanceMethods.ByName("Defragment")),
+			connect.WithClientOptions(opts...),
 		),
 		hash: connect.NewClient[etcdserverpb.HashRequest, etcdserverpb.HashResponse](
 			httpClient,
 			baseURL+MaintenanceHashProcedure,
-			opts...,
+			connect.WithSchema(maintenanceMethods.ByName("Hash")),
+			connect.WithClientOptions(opts...),
 		),
 		hashKV: connect.NewClient[etcdserverpb.HashKVRequest, etcdserverpb.HashKVResponse](
 			httpClient,
 			baseURL+MaintenanceHashKVProcedure,
-			opts...,
+			connect.WithSchema(maintenanceMethods.ByName("HashKV")),
+			connect.WithClientOptions(opts...),
 		),
 		snapshot: connect.NewClient[etcdserverpb.SnapshotRequest, etcdserverpb.SnapshotResponse](
 			httpClient,
 			baseURL+MaintenanceSnapshotProcedure,
-			opts...,
+			connect.WithSchema(maintenanceMethods.ByName("Snapshot")),
+			connect.WithClientOptions(opts...),
 		),
 		moveLeader: connect.NewClient[etcdserverpb.MoveLeaderRequest, etcdserverpb.MoveLeaderResponse](
 			httpClient,
 			baseURL+MaintenanceMoveLeaderProcedure,
-			opts...,
+			connect.WithSchema(maintenanceMethods.ByName("MoveLeader")),
+			connect.WithClientOptions(opts...),
 		),
 		downgrade: connect.NewClient[etcdserverpb.DowngradeRequest, etcdserverpb.DowngradeResponse](
 			httpClient,
 			baseURL+MaintenanceDowngradeProcedure,
-			opts...,
+			connect.WithSchema(maintenanceMethods.ByName("Downgrade")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -912,45 +961,54 @@ type MaintenanceHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewMaintenanceHandler(svc MaintenanceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	maintenanceMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Maintenance").Methods()
 	maintenanceAlarmHandler := connect.NewUnaryHandler(
 		MaintenanceAlarmProcedure,
 		svc.Alarm,
-		opts...,
+		connect.WithSchema(maintenanceMethods.ByName("Alarm")),
+		connect.WithHandlerOptions(opts...),
 	)
 	maintenanceStatusHandler := connect.NewUnaryHandler(
 		MaintenanceStatusProcedure,
 		svc.Status,
-		opts...,
+		connect.WithSchema(maintenanceMethods.ByName("Status")),
+		connect.WithHandlerOptions(opts...),
 	)
 	maintenanceDefragmentHandler := connect.NewUnaryHandler(
 		MaintenanceDefragmentProcedure,
 		svc.Defragment,
-		opts...,
+		connect.WithSchema(maintenanceMethods.ByName("Defragment")),
+		connect.WithHandlerOptions(opts...),
 	)
 	maintenanceHashHandler := connect.NewUnaryHandler(
 		MaintenanceHashProcedure,
 		svc.Hash,
-		opts...,
+		connect.WithSchema(maintenanceMethods.ByName("Hash")),
+		connect.WithHandlerOptions(opts...),
 	)
 	maintenanceHashKVHandler := connect.NewUnaryHandler(
 		MaintenanceHashKVProcedure,
 		svc.HashKV,
-		opts...,
+		connect.WithSchema(maintenanceMethods.ByName("HashKV")),
+		connect.WithHandlerOptions(opts...),
 	)
 	maintenanceSnapshotHandler := connect.NewServerStreamHandler(
 		MaintenanceSnapshotProcedure,
 		svc.Snapshot,
-		opts...,
+		connect.WithSchema(maintenanceMethods.ByName("Snapshot")),
+		connect.WithHandlerOptions(opts...),
 	)
 	maintenanceMoveLeaderHandler := connect.NewUnaryHandler(
 		MaintenanceMoveLeaderProcedure,
 		svc.MoveLeader,
-		opts...,
+		connect.WithSchema(maintenanceMethods.ByName("MoveLeader")),
+		connect.WithHandlerOptions(opts...),
 	)
 	maintenanceDowngradeHandler := connect.NewUnaryHandler(
 		MaintenanceDowngradeProcedure,
 		svc.Downgrade,
-		opts...,
+		connect.WithSchema(maintenanceMethods.ByName("Downgrade")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/etcdserverpb.Maintenance/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
@@ -1058,91 +1116,109 @@ type AuthClient interface {
 // http://api.acme.com or https://acme.com/grpc).
 func NewAuthClient(httpClient connect.HTTPClient, baseURL string, opts ...connect.ClientOption) AuthClient {
 	baseURL = strings.TrimRight(baseURL, "/")
+	authMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Auth").Methods()
 	return &authClient{
 		authEnable: connect.NewClient[etcdserverpb.AuthEnableRequest, etcdserverpb.AuthEnableResponse](
 			httpClient,
 			baseURL+AuthAuthEnableProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("AuthEnable")),
+			connect.WithClientOptions(opts...),
 		),
 		authDisable: connect.NewClient[etcdserverpb.AuthDisableRequest, etcdserverpb.AuthDisableResponse](
 			httpClient,
 			baseURL+AuthAuthDisableProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("AuthDisable")),
+			connect.WithClientOptions(opts...),
 		),
 		authStatus: connect.NewClient[etcdserverpb.AuthStatusRequest, etcdserverpb.AuthStatusResponse](
 			httpClient,
 			baseURL+AuthAuthStatusProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("AuthStatus")),
+			connect.WithClientOptions(opts...),
 		),
 		authenticate: connect.NewClient[etcdserverpb.AuthenticateRequest, etcdserverpb.AuthenticateResponse](
 			httpClient,
 			baseURL+AuthAuthenticateProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("Authenticate")),
+			connect.WithClientOptions(opts...),
 		),
 		userAdd: connect.NewClient[etcdserverpb.AuthUserAddRequest, etcdserverpb.AuthUserAddResponse](
 			httpClient,
 			baseURL+AuthUserAddProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("UserAdd")),
+			connect.WithClientOptions(opts...),
 		),
 		userGet: connect.NewClient[etcdserverpb.AuthUserGetRequest, etcdserverpb.AuthUserGetResponse](
 			httpClient,
 			baseURL+AuthUserGetProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("UserGet")),
+			connect.WithClientOptions(opts...),
 		),
 		userList: connect.NewClient[etcdserverpb.AuthUserListRequest, etcdserverpb.AuthUserListResponse](
 			httpClient,
 			baseURL+AuthUserListProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("UserList")),
+			connect.WithClientOptions(opts...),
 		),
 		userDelete: connect.NewClient[etcdserverpb.AuthUserDeleteRequest, etcdserverpb.AuthUserDeleteResponse](
 			httpClient,
 			baseURL+AuthUserDeleteProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("UserDelete")),
+			connect.WithClientOptions(opts...),
 		),
 		userChangePassword: connect.NewClient[etcdserverpb.AuthUserChangePasswordRequest, etcdserverpb.AuthUserChangePasswordResponse](
 			httpClient,
 			baseURL+AuthUserChangePasswordProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("UserChangePassword")),
+			connect.WithClientOptions(opts...),
 		),
 		userGrantRole: connect.NewClient[etcdserverpb.AuthUserGrantRoleRequest, etcdserverpb.AuthUserGrantRoleResponse](
 			httpClient,
 			baseURL+AuthUserGrantRoleProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("UserGrantRole")),
+			connect.WithClientOptions(opts...),
 		),
 		userRevokeRole: connect.NewClient[etcdserverpb.AuthUserRevokeRoleRequest, etcdserverpb.AuthUserRevokeRoleResponse](
 			httpClient,
 			baseURL+AuthUserRevokeRoleProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("UserRevokeRole")),
+			connect.WithClientOptions(opts...),
 		),
 		roleAdd: connect.NewClient[etcdserverpb.AuthRoleAddRequest, etcdserverpb.AuthRoleAddResponse](
 			httpClient,
 			baseURL+AuthRoleAddProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("RoleAdd")),
+			connect.WithClientOptions(opts...),
 		),
 		roleGet: connect.NewClient[etcdserverpb.AuthRoleGetRequest, etcdserverpb.AuthRoleGetResponse](
 			httpClient,
 			baseURL+AuthRoleGetProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("RoleGet")),
+			connect.WithClientOptions(opts...),
 		),
 		roleList: connect.NewClient[etcdserverpb.AuthRoleListRequest, etcdserverpb.AuthRoleListResponse](
 			httpClient,
 			baseURL+AuthRoleListProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("RoleList")),
+			connect.WithClientOptions(opts...),
 		),
 		roleDelete: connect.NewClient[etcdserverpb.AuthRoleDeleteRequest, etcdserverpb.AuthRoleDeleteResponse](
 			httpClient,
 			baseURL+AuthRoleDeleteProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("RoleDelete")),
+			connect.WithClientOptions(opts...),
 		),
 		roleGrantPermission: connect.NewClient[etcdserverpb.AuthRoleGrantPermissionRequest, etcdserverpb.AuthRoleGrantPermissionResponse](
 			httpClient,
 			baseURL+AuthRoleGrantPermissionProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("RoleGrantPermission")),
+			connect.WithClientOptions(opts...),
 		),
 		roleRevokePermission: connect.NewClient[etcdserverpb.AuthRoleRevokePermissionRequest, etcdserverpb.AuthRoleRevokePermissionResponse](
 			httpClient,
 			baseURL+AuthRoleRevokePermissionProcedure,
-			opts...,
+			connect.WithSchema(authMethods.ByName("RoleRevokePermission")),
+			connect.WithClientOptions(opts...),
 		),
 	}
 }
@@ -1297,90 +1373,108 @@ type AuthHandler interface {
 // By default, handlers support the Connect, gRPC, and gRPC-Web protocols with the binary Protobuf
 // and JSON codecs. They also support gzip compression.
 func NewAuthHandler(svc AuthHandler, opts ...connect.HandlerOption) (string, http.Handler) {
+	authMethods := etcdserverpb.File_etcdserverpb_rpc_proto.Services().ByName("Auth").Methods()
 	authAuthEnableHandler := connect.NewUnaryHandler(
 		AuthAuthEnableProcedure,
 		svc.AuthEnable,
-		opts...,
+		connect.WithSchema(authMethods.ByName("AuthEnable")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authAuthDisableHandler := connect.NewUnaryHandler(
 		AuthAuthDisableProcedure,
 		svc.AuthDisable,
-		opts...,
+		connect.WithSchema(authMethods.ByName("AuthDisable")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authAuthStatusHandler := connect.NewUnaryHandler(
 		AuthAuthStatusProcedure,
 		svc.AuthStatus,
-		opts...,
+		connect.WithSchema(authMethods.ByName("AuthStatus")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authAuthenticateHandler := connect.NewUnaryHandler(
 		AuthAuthenticateProcedure,
 		svc.Authenticate,
-		opts...,
+		connect.WithSchema(authMethods.ByName("Authenticate")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authUserAddHandler := connect.NewUnaryHandler(
 		AuthUserAddProcedure,
 		svc.UserAdd,
-		opts...,
+		connect.WithSchema(authMethods.ByName("UserAdd")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authUserGetHandler := connect.NewUnaryHandler(
 		AuthUserGetProcedure,
 		svc.UserGet,
-		opts...,
+		connect.WithSchema(authMethods.ByName("UserGet")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authUserListHandler := connect.NewUnaryHandler(
 		AuthUserListProcedure,
 		svc.UserList,
-		opts...,
+		connect.WithSchema(authMethods.ByName("UserList")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authUserDeleteHandler := connect.NewUnaryHandler(
 		AuthUserDeleteProcedure,
 		svc.UserDelete,
-		opts...,
+		connect.WithSchema(authMethods.ByName("UserDelete")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authUserChangePasswordHandler := connect.NewUnaryHandler(
 		AuthUserChangePasswordProcedure,
 		svc.UserChangePassword,
-		opts...,
+		connect.WithSchema(authMethods.ByName("UserChangePassword")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authUserGrantRoleHandler := connect.NewUnaryHandler(
 		AuthUserGrantRoleProcedure,
 		svc.UserGrantRole,
-		opts...,
+		connect.WithSchema(authMethods.ByName("UserGrantRole")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authUserRevokeRoleHandler := connect.NewUnaryHandler(
 		AuthUserRevokeRoleProcedure,
 		svc.UserRevokeRole,
-		opts...,
+		connect.WithSchema(authMethods.ByName("UserRevokeRole")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authRoleAddHandler := connect.NewUnaryHandler(
 		AuthRoleAddProcedure,
 		svc.RoleAdd,
-		opts...,
+		connect.WithSchema(authMethods.ByName("RoleAdd")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authRoleGetHandler := connect.NewUnaryHandler(
 		AuthRoleGetProcedure,
 		svc.RoleGet,
-		opts...,
+		connect.WithSchema(authMethods.ByName("RoleGet")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authRoleListHandler := connect.NewUnaryHandler(
 		AuthRoleListProcedure,
 		svc.RoleList,
-		opts...,
+		connect.WithSchema(authMethods.ByName("RoleList")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authRoleDeleteHandler := connect.NewUnaryHandler(
 		AuthRoleDeleteProcedure,
 		svc.RoleDelete,
-		opts...,
+		connect.WithSchema(authMethods.ByName("RoleDelete")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authRoleGrantPermissionHandler := connect.NewUnaryHandler(
 		AuthRoleGrantPermissionProcedure,
 		svc.RoleGrantPermission,
-		opts...,
+		connect.WithSchema(authMethods.ByName("RoleGrantPermission")),
+		connect.WithHandlerOptions(opts...),
 	)
 	authRoleRevokePermissionHandler := connect.NewUnaryHandler(
 		AuthRoleRevokePermissionProcedure,
 		svc.RoleRevokePermission,
-		opts...,
+		connect.WithSchema(authMethods.ByName("RoleRevokePermission")),
+		connect.WithHandlerOptions(opts...),
 	)
 	return "/etcdserverpb.Auth/", http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		switch r.URL.Path {
