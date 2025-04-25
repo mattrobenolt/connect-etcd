@@ -225,9 +225,7 @@ func (i *Informer) Run(ctx context.Context) error {
 
 func (i *Informer) stream(ctx context.Context) error {
 	watchId := rand.Int64()
-	l := i.Client.Logger().With(
-		zap.Int64("watch_id", watchId),
-	)
+	l := i.Client.Logger()
 
 	stream := i.Client.Watch().Watch(ctx)
 	defer stream.CloseRequest()
@@ -262,6 +260,7 @@ func (i *Informer) stream(ctx context.Context) error {
 
 	if ce := l.Check(zap.DebugLevel, "stream started"); ce != nil {
 		ce.Write(
+			zap.Int64("watch_id", watchId),
 			zap.Uint64("cluster_id", msg.Header.ClusterId),
 			zap.Uint64("member_id", msg.Header.MemberId),
 			zap.Int64("revision", msg.Header.Revision),
@@ -293,6 +292,7 @@ func (i *Informer) stream(ctx context.Context) error {
 
 			if ce := l.Check(zap.DebugLevel, "receive message"); ce != nil {
 				ce.Write(
+					zap.Int64("watch_id", watchId),
 					zap.Uint64("cluster_id", msg.Header.ClusterId),
 					zap.Uint64("member_id", msg.Header.MemberId),
 					zap.Int64("revision", msg.Header.Revision),
