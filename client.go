@@ -4,6 +4,7 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -22,12 +23,20 @@ import (
 	"go.withmatt.com/connect-etcd/types/etcdserverpb/etcdserverpbconnect"
 )
 
+// CredentialsProvider returns the username and password for Basic Auth.
+//
+// It is called on each request, including each unary retry attempt and each
+// new streaming RPC, so it may return different values over time to support
+// credential rotation. Implementations must be safe for concurrent use.
+type CredentialsProvider func() (username, password string)
+
 type Config struct {
 	Endpoints    []string
 	TLSConfig    *tls.Config
 	Logger       log.LeveledLogger
 	RetryOptions *RetryOptions
 	DialContext  func(context.Context, string, string) (net.Conn, error)
+	Credentials  CredentialsProvider
 }
 
 type LeveledLogger = log.LeveledLogger
@@ -153,20 +162,34 @@ var defaultRetryOptions = &RetryOptions{
 }
 
 func clientOptions(cfg Config) []connect.ClientOption {
-	opts := defaultClientOpts
+	opts := append([]connect.ClientOption{}, defaultClientOpts...)
+	interceptors := clientInterceptors(cfg)
+	if len(interceptors) == 0 {
+		return opts
+	}
+	return append(opts, connect.WithInterceptors(interceptors...))
+}
+
+func clientInterceptors(cfg Config) []connect.Interceptor {
 	retryOpts := cfg.RetryOptions
 	if retryOpts == nil {
 		retryOpts = defaultRetryOptions
 	}
-	if retryOpts.UnaryAttempts == 0 {
-		return opts
+	interceptors := make([]connect.Interceptor, 0, 2)
+	if retryOpts.UnaryAttempts > 0 {
+		interceptors = append(interceptors, retry.UnaryInterceptor(
+			cfg.Logger,
+			retryOpts.UnaryAttempts,
+			retryOpts.Interval,
+			retryOpts.Jitter,
+		))
 	}
-	return append(opts, connect.WithInterceptors(retry.UnaryInterceptor(
-		cfg.Logger,
-		retryOpts.UnaryAttempts,
-		retryOpts.Interval,
-		retryOpts.Jitter,
-	)))
+	if cfg.Credentials != nil {
+		interceptors = append(interceptors, &basicAuthInterceptor{
+			credentials: cfg.Credentials,
+		})
+	}
+	return interceptors
 }
 
 // likely adopt go-upstream here
@@ -256,4 +279,34 @@ func NextKey(key []byte) []byte {
 	// next prefix does not exist (e.g., 0xffff);
 	// default to WithFromKey policy
 	return []byte{0}
+}
+
+type basicAuthInterceptor struct {
+	credentials CredentialsProvider
+}
+
+func (i *basicAuthInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
+	return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		username, password := i.credentials()
+		setBasicAuthHeader(req.Header(), username, password)
+		return next(ctx, req)
+	}
+}
+
+func (i *basicAuthInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
+	return func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
+		conn := next(ctx, spec)
+		username, password := i.credentials()
+		setBasicAuthHeader(conn.RequestHeader(), username, password)
+		return conn
+	}
+}
+
+func (i *basicAuthInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
+	return next
+}
+
+func setBasicAuthHeader(header http.Header, username, password string) {
+	auth := username + ":" + password
+	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
 }
