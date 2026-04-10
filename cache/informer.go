@@ -86,6 +86,27 @@ func (i *Informer) List() [][]byte {
 	return l
 }
 
+type CompactedError struct {
+	Reason            string
+	CompactedRevision int64
+	RequestedRevision int64
+}
+
+func (e *CompactedError) Error() string {
+	return fmt.Sprintf("informer: stream canceled: %q (compacted revision %d > start revision %d)", e.Reason, e.CompactedRevision, e.RequestedRevision)
+}
+
+func streamHeaderCanceledError(reason string, compactedRevision, startRevision int64) error {
+	if compactedRevision > startRevision {
+		return &CompactedError{
+			Reason:            reason,
+			CompactedRevision: compactedRevision,
+			RequestedRevision: startRevision,
+		}
+	}
+	return fmt.Errorf("informer: stream canceled: %s", reason)
+}
+
 const defaultPageSize = 100
 
 func (i *Informer) load(ctx context.Context) error {
@@ -227,11 +248,12 @@ func (i *Informer) stream(ctx context.Context) error {
 	stream := i.Client.Watch().Watch(ctx)
 	defer stream.CloseRequest()
 
+	startRevision := i.lastRevision + 1
 	if err := stream.Send(&etcdserverpb.WatchRequest{
 		RequestUnion: &etcdserverpb.WatchRequest_CreateRequest{
 			CreateRequest: &etcdserverpb.WatchCreateRequest{
 				WatchId:       watchId,
-				StartRevision: i.lastRevision + 1,
+				StartRevision: startRevision,
 				Key:           i.Key,
 				RangeEnd:      i.RangeEnd,
 
@@ -253,6 +275,10 @@ func (i *Informer) stream(ctx context.Context) error {
 
 	if !msg.Created {
 		return errors.New("informer: unexpected watch message, expected CreateResponse")
+	}
+
+	if msg.Canceled {
+		return streamHeaderCanceledError(msg.CancelReason, msg.CompactRevision, startRevision)
 	}
 
 	if l.CheckDebug() {
@@ -284,6 +310,7 @@ func (i *Informer) stream(ctx context.Context) error {
 			}
 
 			if msg.Canceled {
+				errCh <- fmt.Errorf("informer: stream canceled: %q", msg.CancelReason)
 				return
 			}
 
