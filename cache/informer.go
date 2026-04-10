@@ -30,8 +30,9 @@ type Informer struct {
 	cacheLock sync.RWMutex
 	cache     map[string]*mvccpb.KeyValue
 
-	lastRevision atomic.Int64
-	totalKeys    uint64
+	streamsAttempted atomic.Int64
+	lastRevision     atomic.Int64
+	totalKeys        uint64
 
 	syncDoneMu sync.Mutex
 	syncDone   chan error
@@ -46,6 +47,10 @@ func nextKey(key []byte) []byte {
 
 func (i *Informer) LastRevision() int64 {
 	return i.lastRevision.Load()
+}
+
+func (i *Informer) StreamsAttempted() int64 {
+	return i.streamsAttempted.Load()
 }
 
 func (i *Informer) addFunc(kv *mvccpb.KeyValue) {
@@ -251,8 +256,10 @@ func (i *Informer) stream(ctx context.Context) error {
 	stream := i.Client.Watch().Watch(ctx)
 	defer stream.CloseRequest()
 
-	lastRevision := i.lastRevision.Load()
-	startRevision := lastRevision + 1
+	i.streamsAttempted.Add(1)
+
+	startRevision := i.lastRevision.Load() + 1
+
 	if err := stream.Send(&etcdserverpb.WatchRequest{
 		RequestUnion: &etcdserverpb.WatchRequest_CreateRequest{
 			CreateRequest: &etcdserverpb.WatchCreateRequest{
@@ -294,7 +301,7 @@ func (i *Informer) stream(ctx context.Context) error {
 			"raft_term", msg.Header.RaftTerm,
 		)
 	}
-	lastRevision = msg.Header.Revision
+	lastRevision := msg.Header.Revision
 
 	errCh := make(chan error)
 
