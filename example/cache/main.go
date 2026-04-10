@@ -23,8 +23,8 @@ func main() {
 	ctx, cancel := signal.NotifyContext(context.Background(), os.Interrupt)
 	defer cancel()
 
-	c := client.New(&client.Config{
-		Endpoint: "127.0.0.1:2379",
+	c := client.NewClient(client.Config{
+		Endpoints: []string{"127.0.0.1:2379"},
 	})
 
 	i := cache.Informer{

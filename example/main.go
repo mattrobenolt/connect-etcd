@@ -38,8 +38,8 @@ func main() {
 			panic(err)
 		}
 	}
-	c := client.New(&client.Config{
-		Endpoints: "127.0.0.1:2379",
+	c := client.NewClient(client.Config{
+		Endpoints: []string{"127.0.0.1:2379"},
 		TLSConfig: tlsConfig,
 	})
 
@@ -52,12 +52,10 @@ func main() {
 
 	// first create our watch stream
 	// r := client.Retryer(c.Watch()).Watch(context.Background())
-	stream := client.Retryer(context.TODO(), c.Watch()).Watch(context.Background())
+	stream := c.Watch().Watch(context.Background())
 	go func() {
 		defer func() {
-			stream.Close()
-			// stream.CloseRequest()
-			// stream.CloseResponse()
+			stream.CloseRequest()
 			close(done)
 		}()
 

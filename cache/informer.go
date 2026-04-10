@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"math/rand/v2"
 	"sync"
+	"sync/atomic"
 	"time"
 
 	"connectrpc.com/connect"
@@ -29,8 +30,9 @@ type Informer struct {
 	cacheLock sync.RWMutex
 	cache     map[string]*mvccpb.KeyValue
 
-	lastRevision int64
-	totalKeys    uint64
+	streamsAttempted atomic.Int64
+	lastRevision     atomic.Int64
+	totalKeys        uint64
 
 	syncDoneMu sync.Mutex
 	syncDone   chan error
@@ -44,7 +46,11 @@ func nextKey(key []byte) []byte {
 }
 
 func (i *Informer) LastRevision() int64 {
-	return i.lastRevision
+	return i.lastRevision.Load()
+}
+
+func (i *Informer) StreamsAttempted() int64 {
+	return i.streamsAttempted.Load()
 }
 
 func (i *Informer) addFunc(kv *mvccpb.KeyValue) {
@@ -86,6 +92,27 @@ func (i *Informer) List() [][]byte {
 	return l
 }
 
+type CompactedError struct {
+	Reason            string
+	CompactedRevision int64
+	RequestedRevision int64
+}
+
+func (e *CompactedError) Error() string {
+	return fmt.Sprintf("informer: stream canceled: %q (compacted revision %d > start revision %d)", e.Reason, e.CompactedRevision, e.RequestedRevision)
+}
+
+func streamHeaderCanceledError(reason string, compactedRevision, startRevision int64) error {
+	if compactedRevision > startRevision {
+		return &CompactedError{
+			Reason:            reason,
+			CompactedRevision: compactedRevision,
+			RequestedRevision: startRevision,
+		}
+	}
+	return fmt.Errorf("informer: stream canceled: %s", reason)
+}
+
 const defaultPageSize = 100
 
 func (i *Informer) load(ctx context.Context) error {
@@ -94,7 +121,7 @@ func (i *Informer) load(ctx context.Context) error {
 	l := i.Client.Logger()
 
 	i.cache = make(map[string]*mvccpb.KeyValue)
-	i.lastRevision = 0
+	i.lastRevision.Store(0)
 	i.totalKeys = 0
 
 	pageSize := i.ListPageSize
@@ -104,6 +131,7 @@ func (i *Informer) load(ctx context.Context) error {
 
 	startKey := i.Key
 
+	var lastRevision int64
 	var limit int64
 	var serializable bool
 
@@ -111,7 +139,7 @@ func (i *Informer) load(ctx context.Context) error {
 		if l.CheckDebug() {
 			l.Debug("Range",
 				"key", string(startKey),
-				"revision", i.lastRevision,
+				"revision", lastRevision,
 			)
 		}
 
@@ -122,7 +150,7 @@ func (i *Informer) load(ctx context.Context) error {
 		// starting state for pagination. Once we have a revision, we can
 		// serve the rest of the pages from a replica with an explicit
 		// revision.
-		if i.lastRevision == 0 {
+		if lastRevision == 0 {
 			limit = min(pageSize, defaultPageSize)
 			serializable = false
 		} else {
@@ -136,7 +164,7 @@ func (i *Informer) load(ctx context.Context) error {
 			Key:          startKey,
 			RangeEnd:     i.RangeEnd,
 			Limit:        limit,
-			Revision:     i.lastRevision,
+			Revision:     lastRevision,
 			Serializable: serializable,
 		}))
 		if err != nil {
@@ -145,8 +173,8 @@ func (i *Informer) load(ctx context.Context) error {
 		}
 		msg := resp.Msg
 
-		if i.lastRevision == 0 {
-			i.lastRevision = msg.Header.Revision
+		if lastRevision == 0 {
+			lastRevision = msg.Header.Revision
 		}
 
 		for _, kv := range msg.Kvs {
@@ -160,6 +188,7 @@ func (i *Informer) load(ctx context.Context) error {
 		startKey = nextKey(msg.Kvs[len(msg.Kvs)-1].Key)
 	}
 
+	i.lastRevision.Store(lastRevision)
 	i.cacheLock.Unlock()
 
 	// send out the AddFunc calls after we've successfully synced
@@ -205,7 +234,7 @@ func (i *Informer) Run(ctx context.Context) error {
 		l.Info(
 			"informer sync finished",
 			"total_keys", i.totalKeys,
-			"revision", i.lastRevision,
+			"revision", i.lastRevision.Load(),
 			"duration", time.Since(start),
 		)
 	}
@@ -227,11 +256,15 @@ func (i *Informer) stream(ctx context.Context) error {
 	stream := i.Client.Watch().Watch(ctx)
 	defer stream.CloseRequest()
 
+	i.streamsAttempted.Add(1)
+
+	startRevision := i.lastRevision.Load() + 1
+
 	if err := stream.Send(&etcdserverpb.WatchRequest{
 		RequestUnion: &etcdserverpb.WatchRequest_CreateRequest{
 			CreateRequest: &etcdserverpb.WatchCreateRequest{
 				WatchId:       watchId,
-				StartRevision: i.lastRevision + 1,
+				StartRevision: startRevision,
 				Key:           i.Key,
 				RangeEnd:      i.RangeEnd,
 
@@ -255,6 +288,10 @@ func (i *Informer) stream(ctx context.Context) error {
 		return errors.New("informer: unexpected watch message, expected CreateResponse")
 	}
 
+	if msg.Canceled {
+		return streamHeaderCanceledError(msg.CancelReason, msg.CompactRevision, startRevision)
+	}
+
 	if l.CheckDebug() {
 		l.Debug("stream started",
 			"watch_id", watchId,
@@ -264,7 +301,7 @@ func (i *Informer) stream(ctx context.Context) error {
 			"raft_term", msg.Header.RaftTerm,
 		)
 	}
-	i.lastRevision = msg.Header.Revision
+	lastRevision := msg.Header.Revision
 
 	errCh := make(chan error)
 
@@ -284,6 +321,7 @@ func (i *Informer) stream(ctx context.Context) error {
 			}
 
 			if msg.Canceled {
+				errCh <- fmt.Errorf("informer: stream canceled: %q", msg.CancelReason)
 				return
 			}
 
@@ -294,14 +332,14 @@ func (i *Informer) stream(ctx context.Context) error {
 					"member_id", msg.Header.MemberId,
 					"revision", msg.Header.Revision,
 					"raft_term", msg.Header.RaftTerm,
-					"last_revision", i.lastRevision,
+					"last_revision", lastRevision,
 					"events", len(msg.Events),
 					"fragment", msg.Fragment,
 				)
 			}
 
-			if msg.Header.Revision < i.lastRevision {
-				errCh <- fmt.Errorf("informer: older revision observed: %d -> %d", i.lastRevision, msg.Header.Revision)
+			if msg.Header.Revision < lastRevision {
+				errCh <- fmt.Errorf("informer: older revision observed: %d -> %d", lastRevision, msg.Header.Revision)
 				return
 			}
 
@@ -322,7 +360,8 @@ func (i *Informer) stream(ctx context.Context) error {
 				i.cacheLock.Unlock()
 			}
 
-			i.lastRevision = msg.Header.Revision
+			lastRevision = msg.Header.Revision
+			i.lastRevision.Store(lastRevision)
 		}
 	}()
 
