@@ -2,109 +2,253 @@ package etcd
 
 import (
 	"context"
-	"encoding/base64"
+	"errors"
+	"fmt"
 	"net/http"
 	"testing"
 
 	"connectrpc.com/connect"
+
+	"go.withmatt.com/connect-etcd/internal/log"
+	"go.withmatt.com/connect-etcd/types/etcdserverpb"
+	"go.withmatt.com/connect-etcd/types/etcdserverpb/etcdserverpbconnect"
 )
 
-func TestBasicAuthInterceptorWrapUnarySetsAuthorizationHeaderPerRequest(t *testing.T) {
+// fakeAuthClient stubs only Authenticate; the embedded nil interface panics if
+// anything else is called.
+type fakeAuthClient struct {
+	etcdserverpbconnect.AuthClient
+	authenticate func(context.Context, *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error)
+}
+
+func (f *fakeAuthClient) Authenticate(ctx context.Context, req *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error) {
+	return f.authenticate(ctx, req)
+}
+
+func staticCredentials(username, password string) CredentialsProvider {
+	return func() (string, string) { return username, password }
+}
+
+func tokenIssuer(t *testing.T, calls *int) *fakeAuthClient {
+	t.Helper()
+	return &fakeAuthClient{
+		authenticate: func(_ context.Context, req *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error) {
+			*calls++
+			return connect.NewResponse(&etcdserverpb.AuthenticateResponse{
+				Token: fmt.Sprintf("token-%s-%d", req.Msg.Name, *calls),
+			}), nil
+		},
+	}
+}
+
+func TestTokenAuthInterceptorUnaryAuthenticatesOnceAndCachesToken(t *testing.T) {
 	t.Parallel()
 
-	credentials := []struct {
-		username string
-		password string
-	}{
-		{username: "alice", password: "first"},
-		{username: "bob", password: "second"},
-	}
-	var calls int
-
-	interceptor := &basicAuthInterceptor{
-		credentials: func() (string, string) {
-			creds := credentials[calls]
-			calls++
-			return creds.username, creds.password
-		},
+	var authCalls int
+	interceptor := &tokenAuthInterceptor{
+		credentials: staticCredentials("alice", "secret"),
+		auth:        tokenIssuer(t, &authCalls),
+		logger:      log.Default,
 	}
 
 	var got []string
 	next := interceptor.WrapUnary(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-		got = append(got, req.Header().Get("Authorization"))
+		got = append(got, req.Header().Get(tokenHeaderKey))
 		return connect.NewResponse(&struct{}{}), nil
 	})
 
-	for range credentials {
+	for range 3 {
 		if _, err := next(context.Background(), connect.NewRequest(&struct{}{})); err != nil {
 			t.Fatalf("next() error = %v", err)
 		}
 	}
 
-	want := []string{
-		basicAuthHeader("alice", "first"),
-		basicAuthHeader("bob", "second"),
+	if authCalls != 1 {
+		t.Fatalf("Authenticate calls = %d, want 1", authCalls)
 	}
-	if calls != len(credentials) {
-		t.Fatalf("credentials provider calls = %d, want %d", calls, len(credentials))
-	}
-	if len(got) != len(want) {
-		t.Fatalf("captured headers = %d, want %d", len(got), len(want))
-	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("header %d = %q, want %q", i, got[i], want[i])
+	for i, tok := range got {
+		if tok != "token-alice-1" {
+			t.Fatalf("request %d token = %q, want %q", i, tok, "token-alice-1")
 		}
 	}
 }
 
-func TestBasicAuthInterceptorWrapStreamingClientSetsAuthorizationHeaderPerStream(t *testing.T) {
+func TestTokenAuthInterceptorUnaryReauthenticatesOnInvalidToken(t *testing.T) {
 	t.Parallel()
 
-	credentials := []struct {
-		username string
-		password string
-	}{
-		{username: "watcher", password: "first"},
-		{username: "watcher", password: "rotated"},
+	var authCalls int
+	interceptor := &tokenAuthInterceptor{
+		credentials: staticCredentials("alice", "secret"),
+		auth:        tokenIssuer(t, &authCalls),
+		logger:      log.Default,
 	}
-	var calls int
 
-	interceptor := &basicAuthInterceptor{
-		credentials: func() (string, string) {
-			creds := credentials[calls]
-			calls++
-			return creds.username, creds.password
+	var got []string
+	next := interceptor.WrapUnary(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		got = append(got, req.Header().Get(tokenHeaderKey))
+		if req.Header().Get(tokenHeaderKey) == "token-alice-1" {
+			return nil, connect.NewError(
+				connect.CodeUnauthenticated,
+				errors.New(errInvalidAuthToken),
+			)
+		}
+		return connect.NewResponse(&struct{}{}), nil
+	})
+
+	if _, err := next(context.Background(), connect.NewRequest(&struct{}{})); err != nil {
+		t.Fatalf("next() error = %v", err)
+	}
+
+	if authCalls != 2 {
+		t.Fatalf("Authenticate calls = %d, want 2", authCalls)
+	}
+	want := []string{"token-alice-1", "token-alice-2"}
+	if len(got) != len(want) {
+		t.Fatalf("request attempts = %d, want %d", len(got), len(want))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("attempt %d token = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func TestTokenAuthInterceptorUnaryReturnsErrorWhenReauthKeepsFailing(t *testing.T) {
+	t.Parallel()
+
+	interceptor := &tokenAuthInterceptor{
+		credentials: staticCredentials("alice", "secret"),
+		auth: &fakeAuthClient{
+			authenticate: func(context.Context, *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error) {
+				return connect.NewResponse(&etcdserverpb.AuthenticateResponse{Token: "tok"}), nil
+			},
 		},
+		logger: log.Default,
 	}
 
+	invalid := connect.NewError(connect.CodeUnauthenticated, errors.New(errInvalidAuthToken))
+	var attempts int
+	next := interceptor.WrapUnary(func(context.Context, connect.AnyRequest) (connect.AnyResponse, error) {
+		attempts++
+		return nil, invalid
+	})
+
+	_, err := next(context.Background(), connect.NewRequest(&struct{}{}))
+	if err == nil {
+		t.Fatal("next() error = nil, want invalid auth token error")
+	}
+	// Exactly one re-auth retry: no infinite loop when the server keeps
+	// rejecting fresh tokens.
+	if attempts != 2 {
+		t.Fatalf("request attempts = %d, want 2", attempts)
+	}
+}
+
+func TestTokenAuthInterceptorRecoversWhenAuthGetsEnabled(t *testing.T) {
+	t.Parallel()
+
+	// Server starts with auth disabled, then enables it.
+	authEnabled := false
+	var authCalls int
+	interceptor := &tokenAuthInterceptor{
+		credentials: staticCredentials("alice", "secret"),
+		auth: &fakeAuthClient{
+			authenticate: func(context.Context, *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error) {
+				authCalls++
+				if !authEnabled {
+					return nil, connect.NewError(
+						connect.CodeFailedPrecondition,
+						errors.New(errAuthNotEnabled),
+					)
+				}
+				return connect.NewResponse(&etcdserverpb.AuthenticateResponse{Token: "tok-1"}), nil
+			},
+		},
+		logger: log.Default,
+	}
+
+	var got []string
+	next := interceptor.WrapUnary(func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
+		tok := req.Header().Get(tokenHeaderKey)
+		got = append(got, tok)
+		if authEnabled && tok == "" {
+			return nil, connect.NewError(
+				connect.CodeInvalidArgument,
+				errors.New(errUserEmpty),
+			)
+		}
+		return connect.NewResponse(&struct{}{}), nil
+	})
+
+	// Auth disabled: request goes through with no token, single Authenticate
+	// attempt that learns auth is off.
+	if _, err := next(context.Background(), connect.NewRequest(&struct{}{})); err != nil {
+		t.Fatalf("next() error = %v", err)
+	}
+	if authCalls != 1 {
+		t.Fatalf("Authenticate calls = %d, want 1", authCalls)
+	}
+
+	// Auth flips on server-side: the "user name is empty" rejection must
+	// trigger a re-auth and a retried request with a real token.
+	authEnabled = true
+	if _, err := next(context.Background(), connect.NewRequest(&struct{}{})); err != nil {
+		t.Fatalf("next() after auth enable error = %v", err)
+	}
+
+	want := []string{"", "", "tok-1"}
+	if len(got) != len(want) {
+		t.Fatalf("request attempts = %d, want %d", len(got), len(want))
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Fatalf("attempt %d token = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func TestTokenAuthInterceptorStreamingAttachesTokenAndResetsOnAuthError(t *testing.T) {
+	t.Parallel()
+
+	var authCalls int
+	interceptor := &tokenAuthInterceptor{
+		credentials: staticCredentials("watcher", "secret"),
+		auth:        tokenIssuer(t, &authCalls),
+		logger:      log.Default,
+	}
+
+	var conns []*stubStreamingClientConn
 	wrapped := interceptor.WrapStreamingClient(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
-		return &stubStreamingClientConn{
+		conn := &stubStreamingClientConn{
 			requestHeader:   make(http.Header),
 			responseHeader:  make(http.Header),
 			responseTrailer: make(http.Header),
 		}
+		conns = append(conns, conn)
+		return conn
 	})
 
 	stream1 := wrapped(context.Background(), connect.Spec{})
-	stream2 := wrapped(context.Background(), connect.Spec{})
-
-	got := []string{
-		stream1.RequestHeader().Get("Authorization"),
-		stream2.RequestHeader().Get("Authorization"),
-	}
-	want := []string{
-		basicAuthHeader("watcher", "first"),
-		basicAuthHeader("watcher", "rotated"),
+	if got := conns[0].requestHeader.Get(tokenHeaderKey); got != "token-watcher-1" {
+		t.Fatalf("stream1 token = %q, want %q", got, "token-watcher-1")
 	}
 
-	if calls != len(credentials) {
-		t.Fatalf("credentials provider calls = %d, want %d", calls, len(credentials))
+	// Server invalidates the token mid-stream (e.g. simple token TTL): the
+	// Receive error must drop the cached token so the next stream re-auths.
+	conns[0].receiveErr = connect.NewError(
+		connect.CodeUnauthenticated,
+		errors.New(errInvalidAuthToken),
+	)
+	if err := stream1.Receive(&struct{}{}); err == nil {
+		t.Fatal("stream1.Receive() error = nil, want invalid auth token error")
 	}
-	for i := range want {
-		if got[i] != want[i] {
-			t.Fatalf("stream header %d = %q, want %q", i, got[i], want[i])
-		}
+
+	wrapped(context.Background(), connect.Spec{})
+	if got := conns[1].requestHeader.Get(tokenHeaderKey); got != "token-watcher-2" {
+		t.Fatalf("stream2 token = %q, want %q", got, "token-watcher-2")
+	}
+	if authCalls != 2 {
+		t.Fatalf("Authenticate calls = %d, want 2", authCalls)
 	}
 }
 
@@ -113,16 +257,14 @@ func TestClientInterceptorsIncludeCredentialsWithoutRetry(t *testing.T) {
 
 	interceptors := clientInterceptors(Config{
 		RetryOptions: NoRetry,
-		Credentials: func() (string, string) {
-			return "user", "pass"
-		},
-	})
+		Credentials:  staticCredentials("user", "pass"),
+	}, http.DefaultClient, "http://localhost:2379")
 
 	if len(interceptors) != 1 {
 		t.Fatalf("len(interceptors) = %d, want 1", len(interceptors))
 	}
-	if _, ok := interceptors[0].(*basicAuthInterceptor); !ok {
-		t.Fatalf("interceptors[0] = %T, want *basicAuthInterceptor", interceptors[0])
+	if _, ok := interceptors[0].(*tokenAuthInterceptor); !ok {
+		t.Fatalf("interceptors[0] = %T, want *tokenAuthInterceptor", interceptors[0])
 	}
 }
 
@@ -133,10 +275,8 @@ func TestClientInterceptorsOrderRetryBeforeCredentials(t *testing.T) {
 		RetryOptions: &RetryOptions{
 			UnaryAttempts: 1,
 		},
-		Credentials: func() (string, string) {
-			return "user", "pass"
-		},
-	})
+		Credentials: staticCredentials("user", "pass"),
+	}, http.DefaultClient, "http://localhost:2379")
 
 	if len(interceptors) != 2 {
 		t.Fatalf("len(interceptors) = %d, want 2", len(interceptors))
@@ -144,19 +284,16 @@ func TestClientInterceptorsOrderRetryBeforeCredentials(t *testing.T) {
 	if _, ok := interceptors[0].(connect.UnaryInterceptorFunc); !ok {
 		t.Fatalf("interceptors[0] = %T, want connect.UnaryInterceptorFunc", interceptors[0])
 	}
-	if _, ok := interceptors[1].(*basicAuthInterceptor); !ok {
-		t.Fatalf("interceptors[1] = %T, want *basicAuthInterceptor", interceptors[1])
+	if _, ok := interceptors[1].(*tokenAuthInterceptor); !ok {
+		t.Fatalf("interceptors[1] = %T, want *tokenAuthInterceptor", interceptors[1])
 	}
-}
-
-func basicAuthHeader(username, password string) string {
-	return "Basic " + base64.StdEncoding.EncodeToString([]byte(username+":"+password))
 }
 
 type stubStreamingClientConn struct {
 	requestHeader   http.Header
 	responseHeader  http.Header
 	responseTrailer http.Header
+	receiveErr      error
 }
 
 func (s *stubStreamingClientConn) Spec() connect.Spec {
@@ -180,7 +317,7 @@ func (s *stubStreamingClientConn) CloseRequest() error {
 }
 
 func (s *stubStreamingClientConn) Receive(any) error {
-	return nil
+	return s.receiveErr
 }
 
 func (s *stubStreamingClientConn) ResponseHeader() http.Header {

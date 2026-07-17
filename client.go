@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
-	"encoding/base64"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -23,11 +22,13 @@ import (
 	"go.withmatt.com/connect-etcd/types/etcdserverpb/etcdserverpbconnect"
 )
 
-// CredentialsProvider returns the username and password for Basic Auth.
+// CredentialsProvider returns the username and password used to authenticate
+// against etcd via the Auth.Authenticate RPC.
 //
-// It is called on each request, including each unary retry attempt and each
-// new streaming RPC, so it may return different values over time to support
-// credential rotation. Implementations must be safe for concurrent use.
+// It is called each time the client (re-)authenticates — at first use and
+// whenever the server rejects the cached token — so it may return different
+// values over time to support credential rotation. Implementations must be
+// safe for concurrent use.
 type CredentialsProvider func() (username, password string)
 
 type Config struct {
@@ -136,11 +137,12 @@ func NewClient(cfg Config) *Client {
 	}
 	// TODO: handle multiple endpoints
 	endpoint := protocol + "://" + cfg.Endpoints[0]
+	httpClient := defaultHTTPClient(cfg)
 	return &Client{
-		httpClient: defaultHTTPClient(cfg),
+		httpClient: httpClient,
 		logger:     cfg.Logger,
 		endpoint:   endpoint,
-		opts:       clientOptions(cfg),
+		opts:       clientOptions(cfg, httpClient, endpoint),
 	}
 }
 
@@ -161,16 +163,19 @@ var defaultRetryOptions = &RetryOptions{
 	Jitter:        0.2,
 }
 
-func clientOptions(cfg Config) []connect.ClientOption {
+func clientOptions(cfg Config, httpClient connect.HTTPClient, endpoint string) []connect.ClientOption {
 	opts := append([]connect.ClientOption{}, defaultClientOpts...)
-	interceptors := clientInterceptors(cfg)
+	interceptors := clientInterceptors(cfg, httpClient, endpoint)
 	if len(interceptors) == 0 {
 		return opts
 	}
 	return append(opts, connect.WithInterceptors(interceptors...))
 }
 
-func clientInterceptors(cfg Config) []connect.Interceptor {
+func clientInterceptors(cfg Config, httpClient connect.HTTPClient, endpoint string) []connect.Interceptor {
+	if cfg.Logger == nil {
+		cfg.Logger = log.Default
+	}
 	retryOpts := cfg.RetryOptions
 	if retryOpts == nil {
 		retryOpts = defaultRetryOptions
@@ -185,8 +190,17 @@ func clientInterceptors(cfg Config) []connect.Interceptor {
 		))
 	}
 	if cfg.Credentials != nil {
-		interceptors = append(interceptors, &basicAuthInterceptor{
+		// The Auth client used to obtain tokens shares the retry interceptor
+		// but must not carry the token interceptor itself, since Authenticate
+		// is the one RPC that authenticates with credentials, not a token.
+		authOpts := append([]connect.ClientOption{}, defaultClientOpts...)
+		if len(interceptors) > 0 {
+			authOpts = append(authOpts, connect.WithInterceptors(interceptors...))
+		}
+		interceptors = append(interceptors, &tokenAuthInterceptor{
 			credentials: cfg.Credentials,
+			auth:        etcdserverpbconnect.NewAuthClient(httpClient, endpoint, authOpts...),
+			logger:      cfg.Logger,
 		})
 	}
 	return interceptors
@@ -279,34 +293,4 @@ func NextKey(key []byte) []byte {
 	// next prefix does not exist (e.g., 0xffff);
 	// default to WithFromKey policy
 	return []byte{0}
-}
-
-type basicAuthInterceptor struct {
-	credentials CredentialsProvider
-}
-
-func (i *basicAuthInterceptor) WrapUnary(next connect.UnaryFunc) connect.UnaryFunc {
-	return func(ctx context.Context, req connect.AnyRequest) (connect.AnyResponse, error) {
-		username, password := i.credentials()
-		setBasicAuthHeader(req.Header(), username, password)
-		return next(ctx, req)
-	}
-}
-
-func (i *basicAuthInterceptor) WrapStreamingClient(next connect.StreamingClientFunc) connect.StreamingClientFunc {
-	return func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
-		conn := next(ctx, spec)
-		username, password := i.credentials()
-		setBasicAuthHeader(conn.RequestHeader(), username, password)
-		return conn
-	}
-}
-
-func (i *basicAuthInterceptor) WrapStreamingHandler(next connect.StreamingHandlerFunc) connect.StreamingHandlerFunc {
-	return next
-}
-
-func setBasicAuthHeader(header http.Header, username, password string) {
-	auth := username + ":" + password
-	header.Set("Authorization", "Basic "+base64.StdEncoding.EncodeToString([]byte(auth)))
 }
