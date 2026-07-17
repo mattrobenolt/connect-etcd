@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -16,6 +17,15 @@ import (
 // tokenHeaderKey is the gRPC metadata key etcd inspects for an auth token.
 // See rpctypes.TokenFieldNameGRPC in etcd.
 const tokenHeaderKey = "token"
+
+// authDisabledTTL bounds how long a "authentication is not enabled" result is
+// trusted before re-probing with Authenticate. Auth can be enabled server-side
+// at any time, and a client that learned "auth off" before the flip otherwise
+// has no reliable signal on streams: etcd rejects an unauthorized watch with a
+// cancel *message* (WatchId -1), not an RPC error, so the needsReauth reset
+// path never fires. Re-probing keeps such clients self-healing at the cost of
+// one failed Authenticate per TTL while auth is genuinely off.
+const authDisabledTTL = 10 * time.Second
 
 // etcd error strings, stable across versions
 // (see go.etcd.io/etcd/api/v3rpc/rpctypes).
@@ -65,9 +75,9 @@ type tokenAuthInterceptor struct {
 
 	// mu also serializes Authenticate calls so concurrent requests that race
 	// on an expired token trigger a single re-authentication.
-	mu           sync.Mutex
-	token        string
-	authDisabled bool
+	mu             sync.Mutex
+	token          string
+	authDisabledAt time.Time // zero when auth is (believed) enabled
 }
 
 // getToken returns the cached token, authenticating first if needed. An empty
@@ -76,8 +86,11 @@ type tokenAuthInterceptor struct {
 func (i *tokenAuthInterceptor) getToken(ctx context.Context) (string, error) {
 	i.mu.Lock()
 	defer i.mu.Unlock()
-	if i.token != "" || i.authDisabled {
+	if i.token != "" {
 		return i.token, nil
+	}
+	if !i.authDisabledAt.IsZero() && time.Since(i.authDisabledAt) < authDisabledTTL {
+		return "", nil
 	}
 	username, password := i.credentials()
 	res, err := i.auth.Authenticate(ctx, connect.NewRequest(&etcdserverpb.AuthenticateRequest{
@@ -86,12 +99,15 @@ func (i *tokenAuthInterceptor) getToken(ctx context.Context) (string, error) {
 	}))
 	if err != nil {
 		if isAuthNotEnabled(err) {
-			i.logger.Info("etcd auth: authentication not enabled on server, proceeding without token")
-			i.authDisabled = true
+			if i.authDisabledAt.IsZero() {
+				i.logger.Info("etcd auth: authentication not enabled on server, proceeding without token")
+			}
+			i.authDisabledAt = time.Now()
 			return "", nil
 		}
 		return "", err
 	}
+	i.authDisabledAt = time.Time{}
 	i.token = res.Msg.Token
 	return i.token, nil
 }
@@ -105,7 +121,7 @@ func (i *tokenAuthInterceptor) reset(failed string) {
 	if i.token == failed {
 		i.token = ""
 	}
-	i.authDisabled = false
+	i.authDisabledAt = time.Time{}
 }
 
 func setTokenHeader(header http.Header, token string) {
