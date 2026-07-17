@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"testing"
+	"time"
 
 	"connectrpc.com/connect"
 
@@ -204,6 +205,57 @@ func TestTokenAuthInterceptorRecoversWhenAuthGetsEnabled(t *testing.T) {
 		if got[i] != want[i] {
 			t.Fatalf("attempt %d token = %q, want %q", i, got[i], want[i])
 		}
+	}
+}
+
+func TestTokenAuthInterceptorReprobesAfterAuthDisabledTTL(t *testing.T) {
+	t.Parallel()
+
+	authEnabled := false
+	var authCalls int
+	interceptor := &tokenAuthInterceptor{
+		credentials: staticCredentials("alice", "secret"),
+		auth: &fakeAuthClient{
+			authenticate: func(context.Context, *connect.Request[etcdserverpb.AuthenticateRequest]) (*connect.Response[etcdserverpb.AuthenticateResponse], error) {
+				authCalls++
+				if !authEnabled {
+					return nil, connect.NewError(
+						connect.CodeFailedPrecondition,
+						errors.New(errAuthNotEnabled),
+					)
+				}
+				return connect.NewResponse(&etcdserverpb.AuthenticateResponse{Token: "tok-1"}), nil
+			},
+		},
+		logger: log.Default,
+	}
+
+	// First call learns auth is off.
+	tok, err := interceptor.getToken(context.Background())
+	if err != nil || tok != "" {
+		t.Fatalf("getToken() = (%q, %v), want empty token, nil error", tok, err)
+	}
+	// Within the TTL the cached result is trusted: no re-probe.
+	if tok, err := interceptor.getToken(context.Background()); err != nil || tok != "" {
+		t.Fatalf("getToken() within TTL = (%q, %v), want empty token, nil error", tok, err)
+	}
+	if authCalls != 1 {
+		t.Fatalf("Authenticate calls = %d, want 1 (no re-probe within TTL)", authCalls)
+	}
+
+	// Auth flips on server-side. Simulate TTL expiry: streams see watch-cancel
+	// messages (not RPC errors), so this re-probe is their only recovery path.
+	authEnabled = true
+	interceptor.mu.Lock()
+	interceptor.authDisabledAt = time.Now().Add(-authDisabledTTL)
+	interceptor.mu.Unlock()
+
+	tok, err = interceptor.getToken(context.Background())
+	if err != nil || tok != "tok-1" {
+		t.Fatalf("getToken() after TTL = (%q, %v), want (\"tok-1\", nil)", tok, err)
+	}
+	if authCalls != 2 {
+		t.Fatalf("Authenticate calls = %d, want 2", authCalls)
 	}
 }
 
