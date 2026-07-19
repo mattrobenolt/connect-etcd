@@ -50,7 +50,12 @@ func needsReauth(err error) bool {
 	if err == nil {
 		return false
 	}
-	msg := err.Error()
+	return needsReauthReason(err.Error())
+}
+
+// needsReauthReason is needsReauth for a bare etcd error string, such as a
+// watch cancel reason, which carries no error wrapper.
+func needsReauthReason(msg string) bool {
 	return strings.Contains(msg, errInvalidAuthToken) ||
 		strings.Contains(msg, errAuthOldRevision) ||
 		strings.Contains(msg, errUserEmpty)
@@ -193,8 +198,19 @@ func (c *tokenStreamConn) Send(msg any) error {
 
 func (c *tokenStreamConn) Receive(msg any) error {
 	err := c.StreamingClientConn.Receive(msg)
-	if needsReauth(err) {
+	if err != nil {
+		if needsReauth(err) {
+			c.auth.reset(c.token)
+		}
+		return err
+	}
+	// etcd rejects a watch create on an established stream by delivering a
+	// successful WatchResponse with Canceled set and the rejection (e.g.
+	// "invalid auth token") in CancelReason — not a stream error. Without
+	// this check the cached token is replayed on every stream retry and the
+	// watcher wedges permanently.
+	if wr, ok := msg.(*etcdserverpb.WatchResponse); ok && wr.Canceled && needsReauthReason(wr.CancelReason) {
 		c.auth.reset(c.token)
 	}
-	return err
+	return nil
 }

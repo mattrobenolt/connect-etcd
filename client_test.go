@@ -304,6 +304,68 @@ func TestTokenAuthInterceptorStreamingAttachesTokenAndResetsOnAuthError(t *testi
 	}
 }
 
+func TestTokenAuthInterceptorStreamingResetsOnWatchCancelMessage(t *testing.T) {
+	t.Parallel()
+
+	var authCalls int
+	interceptor := &tokenAuthInterceptor{
+		credentials: staticCredentials("watcher", "secret"),
+		auth:        tokenIssuer(t, &authCalls),
+		logger:      log.Default,
+	}
+
+	var conns []*stubStreamingClientConn
+	wrapped := interceptor.WrapStreamingClient(func(ctx context.Context, spec connect.Spec) connect.StreamingClientConn {
+		conn := &stubStreamingClientConn{
+			requestHeader:   make(http.Header),
+			responseHeader:  make(http.Header),
+			responseTrailer: make(http.Header),
+		}
+		conns = append(conns, conn)
+		return conn
+	})
+
+	stream1 := wrapped(context.Background(), connect.Spec{})
+	if got := conns[0].requestHeader.Get(tokenHeaderKey); got != "token-watcher-1" {
+		t.Fatalf("stream1 token = %q, want %q", got, "token-watcher-1")
+	}
+
+	// A normal watch message must not drop the token.
+	conns[0].receive = func(msg any) error {
+		wr := msg.(*etcdserverpb.WatchResponse)
+		wr.Created = true
+		return nil
+	}
+	if err := stream1.Receive(&etcdserverpb.WatchResponse{}); err != nil {
+		t.Fatalf("stream1.Receive() error = %v", err)
+	}
+	if authCalls != 1 {
+		t.Fatalf("Authenticate calls after normal message = %d, want 1", authCalls)
+	}
+
+	// etcd rejects a watch create with a successful WatchResponse carrying
+	// Canceled and the auth failure in CancelReason, not a stream error. The
+	// cached token must be dropped so the caller's stream retry re-auths
+	// instead of replaying the rejected token forever.
+	conns[0].receive = func(msg any) error {
+		wr := msg.(*etcdserverpb.WatchResponse)
+		wr.Canceled = true
+		wr.CancelReason = "rpc error: code = Unauthenticated desc = " + errInvalidAuthToken
+		return nil
+	}
+	if err := stream1.Receive(&etcdserverpb.WatchResponse{}); err != nil {
+		t.Fatalf("stream1.Receive() error = %v", err)
+	}
+
+	wrapped(context.Background(), connect.Spec{})
+	if got := conns[1].requestHeader.Get(tokenHeaderKey); got != "token-watcher-2" {
+		t.Fatalf("stream2 token = %q, want %q", got, "token-watcher-2")
+	}
+	if authCalls != 2 {
+		t.Fatalf("Authenticate calls = %d, want 2", authCalls)
+	}
+}
+
 func TestClientInterceptorsIncludeCredentialsWithoutRetry(t *testing.T) {
 	t.Parallel()
 
@@ -346,6 +408,7 @@ type stubStreamingClientConn struct {
 	responseHeader  http.Header
 	responseTrailer http.Header
 	receiveErr      error
+	receive         func(any) error
 }
 
 func (s *stubStreamingClientConn) Spec() connect.Spec {
@@ -368,8 +431,14 @@ func (s *stubStreamingClientConn) CloseRequest() error {
 	return nil
 }
 
-func (s *stubStreamingClientConn) Receive(any) error {
-	return s.receiveErr
+func (s *stubStreamingClientConn) Receive(msg any) error {
+	if s.receiveErr != nil {
+		return s.receiveErr
+	}
+	if s.receive != nil {
+		return s.receive(msg)
+	}
+	return nil
 }
 
 func (s *stubStreamingClientConn) ResponseHeader() http.Header {
