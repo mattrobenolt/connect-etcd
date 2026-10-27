@@ -250,6 +250,10 @@ func (i *Informer) Run(ctx context.Context) error {
 }
 
 func (i *Informer) stream(ctx context.Context) error {
+	// Ensure the watch stream is fully shut down when this func returns.
+	ctx, cancel := context.WithCancel(ctx)
+	defer cancel()
+
 	watchId := rand.Int64()
 	l := i.Client.Logger()
 
